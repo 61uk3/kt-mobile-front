@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Поделись</string>
+    <string name="navigation_item_catalog">Каталог</string>
+    <string name="navigation_item_chat">Чат</string>
+    <string name="navigation_item_addlot">Добавить</string>
+    <string name="navigation_item_profile">Профиль</string>
+</resources>
