@@ -185,7 +185,7 @@ fun ImageBox(
         ){
             Icon(
                 modifier = Modifier
-                    .padding(8.dp),
+                    .padding(16.dp),
                 painter = painterResource(id = R.drawable.ic_pen),
                 contentDescription = null
             )
