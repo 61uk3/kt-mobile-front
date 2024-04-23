@@ -7,7 +7,6 @@ data class ItemChat(
     val lotImageId: Int = R.drawable.login_image,
     val lotName: String = "Lot",
     val userName: String = "User",
-    val userAvatarId: Int = R.drawable.user_avatar,
     val messageText: String = "Message",
     val messageTime: String = "12.02.24"
 )

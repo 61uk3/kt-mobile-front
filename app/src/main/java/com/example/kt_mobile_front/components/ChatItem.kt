@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kt_mobile_front.data.ItemChat
@@ -41,28 +42,26 @@ fun ChatItem(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                UserInfo(
-                    modifier = Modifier,
-                    userName = chat.userName,
-                    chatId = chat.id,
-                    userAvatar = chat.userAvatarId
+                Text(
+                    text = chat.lotName,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = chat.messageTime,
                     fontSize = 12.sp
                 )
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = chat.lotName,
-                fontSize = 14.sp
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = chat.messageText,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(text = chat.userName + ": ")
+                Text(
+                    text = chat.messageText,
+                    fontSize = 16.sp
+                )
+            }
         }
     }
 }
