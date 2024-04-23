@@ -68,20 +68,8 @@ fun MainScreen(navHostController: NavHostController = rememberNavController()){
             catalogScreenContent = { CatalogScreen() },
             chatScreenContent = { ChatsScreen(chats = chats) },
             addLotScreenContent = { AddLotScreen() },
-            profileScreenContent = { TextCounter(name = "Profile") }
+            profileScreenContent = { ProfileScreen() }
 
         )
     }
-}
-
-@Composable
-private fun TextCounter(
-    name: String
-){
-    var count by remember {
-        mutableStateOf(0)
-    }
-    Text(
-        modifier = Modifier.clickable { count++ },
-        text = "$name Count: $count")
 }

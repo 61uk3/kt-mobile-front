@@ -9,6 +9,7 @@ sealed class Screen(
     object Profile: Screen(ROUTE_PROFILE)
     object Signup: Screen(ROUTE_SIGNUP)
     object Signin: Screen(ROUTE_SIGNIN)
+    object Lot: Screen(ROUTE_LOT)
 
     private companion object{
         const val ROUTE_CATALOG = "catalog"
@@ -17,5 +18,6 @@ sealed class Screen(
         const val ROUTE_PROFILE = "profile"
         const val ROUTE_SIGNUP = "signup"
         const val ROUTE_SIGNIN = "signin"
+        const val ROUTE_LOT = "lot"
     }
 }

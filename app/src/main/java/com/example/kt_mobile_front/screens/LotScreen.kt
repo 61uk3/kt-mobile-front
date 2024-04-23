@@ -1,10 +1,9 @@
 package com.example.kt_mobile_front.screens
 
 import android.annotation.SuppressLint
-import android.graphics.drawable.Icon
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,32 +13,38 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.kt_mobile_front.R
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LotScreen(){
+fun LotScreen(
+    myLot: Boolean = false
+) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -51,7 +56,26 @@ fun LotScreen(){
                 },
                 navigationIcon = {
                     IconButton(onClick = { /*TODO*/ }) {
-                        Icon(painter = painterResource(id = R.drawable.ic_arrow_back), contentDescription = null)
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = null
+                        )
+                    }
+                },
+                actions = {
+                    if (myLot) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_pen),
+                                contentDescription = null
+                            )
+                        }
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_trash),
+                                contentDescription = null
+                            )
+                        }
                     }
                 }
             )
@@ -66,55 +90,86 @@ fun LotScreen(){
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp)
+                    .height(330.dp)
+                    .clip(RoundedCornerShape(12.dp))
             ) {
 
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = "Характеристики", fontWeight = FontWeight.Bold, fontSize = 24.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Характеристики")
+
+            CharRow(title = "Категория:", value = "Инструменты")
+            CharRow(title = "Состояние:", value = "Новое")
+            CharRow(title = "Наличие:", value = "В наличии")
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Описание", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Описание",
+                fontSize = 18.sp
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Местоположение", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            Address(city = "Череповец", street = "Октябрьский проспект", home = "85")
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+
+            Spacer(modifier = Modifier.height(8.dp))
+            UserCard(userAvatar = R.drawable.user_avatar, userName = "Александр")
             Spacer(modifier = Modifier.height(4.dp))
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                CharRow(title = "Категория:", value = "Инструменты")
-                CharRow(title = "Состояние:", value = "Новое")
-                CharRow(title = "Наличие:", value = "В наличии")
+            if (!myLot) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Button(
+                        onClick = { /*TODO*/ }
+                    ) {
+                        Text(text = "Написать")
+                    }
+                }
+
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Описание")
-            Spacer(modifier = Modifier.height(4.dp))
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    modifier = Modifier.padding(8.dp),
-                    text = "Описание"
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            UserCard()
         }
     }
 }
 
 @Composable
-private fun CharRow(
+fun Address(
+    city: String,
+    street: String,
+    home: String
+) {
+    Text(text = "${city}, ${street}, ${home}")
+}
+
+@Composable
+fun CharRow(
     title: String,
-    value: String
-){
+    value: String,
+    modifier: Modifier = Modifier
+) {
     Row(
-        modifier = Modifier
-            .padding(8.dp)
+        modifier = modifier
     ) {
-        Text(text = title)
-        Text(text = value)
+        Text(text = title, fontSize = 18.sp)
+        Text(text = value, fontSize = 18.sp)
     }
 }
 
 @Composable
-private fun UserCard(){
+private fun UserCard(
+    userAvatar: Int,
+    userName: String
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -124,9 +179,13 @@ private fun UserCard(){
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(modifier = Modifier.size(40.dp),painter = painterResource(id = R.drawable.user_avatar), contentDescription = null)
+            Image(
+                modifier = Modifier.size(40.dp),
+                painter = painterResource(id = userAvatar),
+                contentDescription = null
+            )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Александр")
+            Text(text = userName)
         }
     }
 }

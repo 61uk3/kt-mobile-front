@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
@@ -28,8 +30,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,13 +43,34 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kt_mobile_front.R
+import com.example.kt_mobile_front.components.LotCard
+import com.example.kt_mobile_front.data.ItemShortLot
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CatalogScreen() {
+    val lotList = mutableListOf<ItemShortLot>().apply {
+        add(ItemShortLot(id = 1, photo = "фото", name = "шруповерт"))
+        add(ItemShortLot(id = 2, photo = "фото", name = "перфоратор"))
+        add(ItemShortLot(id = 3, photo = "фото", name = "набор отверток"))
+    }
+    fun search(
+        text: String
+    ): List<ItemShortLot> {
+        return lotList.filter {
+            it.name.lowercase().startsWith(text.lowercase())
+        }
+    }
+
+    val mainList = remember {
+        mutableStateOf(lotList)
+    }
     val searchText = remember {
         mutableStateOf("")
+    }
+    var isActive by remember {
+        mutableStateOf(false)
     }
     Scaffold(
         topBar = {
@@ -64,9 +90,14 @@ fun CatalogScreen() {
                         onQueryChange = {
                             searchText.value = it
                         },
-                        onSearch = {},
-                        active = false,
-                        onActiveChange = {},
+                        onSearch = {
+                             isActive = false
+                             mainList.value = search(it).toMutableList()
+                        },
+                        active = isActive,
+                        onActiveChange = {
+                             isActive = it
+                        },
                         leadingIcon = {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_search),
@@ -98,23 +129,17 @@ fun CatalogScreen() {
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(start = 4.dp, top = 72.dp, end = 4.dp, bottom = 92.dp)
+            contentPadding = PaddingValues(start = 4.dp, top = 72.dp, end = 4.dp, bottom = 88.dp)
         ) {
-            items(1000) {
-                Card(
+
+            items(mainList.value){
+                LotCard(
                     modifier = Modifier
                         .size(220.dp)
                         .padding(4.dp)
-                        .clickable {  }
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.qq),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop
-                    )
-                    Text(text = "Набор инструментов")
-                }
-
+                        .clickable { },
+                    itemShortLot = it
+                )
             }
         }
     }
