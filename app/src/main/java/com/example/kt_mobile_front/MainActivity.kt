@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.kt_mobile_front.navigation.RootNavigationGraph
 import com.example.kt_mobile_front.screens.AddLotScreen
 import com.example.kt_mobile_front.screens.ChatsScreen
+import com.example.kt_mobile_front.screens.ElseProfileScreen
 import com.example.kt_mobile_front.screens.LotScreen
 import com.example.kt_mobile_front.screens.MainScreen
 import com.example.kt_mobile_front.screens.SigninScreen
@@ -27,9 +28,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    RootNavigationGraph(navHostController = rememberNavController())
+                    //RootNavigationGraph(navHostController = rememberNavController())
                     //LotScreen()
                     //AddLotScreen()
+                    //ElseProfileScreen()
+                    LotScreen(true)
                 }
             }
         }

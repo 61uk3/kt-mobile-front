@@ -26,6 +26,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kt_mobile_front.components.ChatItem
+import com.example.kt_mobile_front.components.UserInfo
 import com.example.kt_mobile_front.data.ItemChat
 import com.example.kt_mobile_front.ui.theme.KtmobilefrontTheme
 
@@ -49,75 +51,5 @@ fun ChatsScreen(
     }
 }
 
-@Composable
-private fun ChatItem(
-    chat: ItemChat
-){
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clickable { }
-    ){
-        Image(
-            modifier = Modifier
-                .size(64.dp),
-            painter = painterResource(id = chat.lotImageId),
-            contentDescription = null
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column{
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                UserInfo(
-                    modifier = Modifier,
-                    userName = chat.userName,
-                    chatId = chat.id,
-                    userAvatar = chat.userAvatarId
-                )
-                Text(
-                    text = chat.messageTime,
-                    fontSize = 12.sp
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = chat.lotName,
-                fontSize = 14.sp
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = chat.messageText,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-        }
-    }
 
-}
 
-@Composable
-private fun UserInfo(
-    modifier: Modifier,
-    userName: String,
-    chatId: Int,
-    userAvatar: Int
-){
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "${userName} ChatId: ${chatId}",
-            fontSize = 14.sp
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Image(
-            modifier = Modifier.size(24.dp),
-            painter = painterResource(id = userAvatar),
-            contentDescription = null
-        )
-
-    }
-}

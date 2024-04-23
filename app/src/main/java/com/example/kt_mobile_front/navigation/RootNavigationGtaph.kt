@@ -24,4 +24,5 @@ object Graph {
     const val ROOT = "root_graph"
     const val AUTHENTICATION = "auth_graph"
     const val CATALOG = "catalog_graph"
+    const val LOT = "lot_graph"
 }

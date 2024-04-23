@@ -42,6 +42,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kt_mobile_front.R
+import com.example.kt_mobile_front.components.ButtonToSite
+import com.example.kt_mobile_front.components.MyTextField
 
 @Composable
 fun SigninScreen(
@@ -138,17 +140,3 @@ fun SigninScreen(
 
     }
 }
-@Composable
-fun ButtonToSite() {
-    val context = LocalContext.current
-    val intent = remember { Intent(Intent.ACTION_VIEW, Uri.parse("https://rsbor.ru/")) }
-
-    IconButton(modifier = Modifier.size(80.dp), onClick = { context.startActivity(intent) }) {
-        Image(
-            modifier = Modifier.size(60.dp),
-            painter = painterResource(id = R.drawable.header_logo),
-            contentDescription = null
-        )
-    }
-}
-
