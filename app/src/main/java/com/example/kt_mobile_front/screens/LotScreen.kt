@@ -3,6 +3,8 @@ package com.example.kt_mobile_front.screens
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,9 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -31,6 +35,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,6 +51,7 @@ import com.example.kt_mobile_front.R
 fun LotScreen(
     myLot: Boolean = false
 ) {
+    val pagerState = rememberPagerState(pageCount = {3})
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -87,14 +94,46 @@ fun LotScreen(
                 .padding(start = 8.dp, top = 64.dp, end = 8.dp, bottom = 4.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(330.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            ) {
-
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(330.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.Red)
+            )
+            {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    pageSpacing = 8.dp
+                ) {page ->
+                    Image(
+                        modifier = Modifier.fillMaxSize(),
+                        painter = painterResource(id = R.drawable.qq), contentDescription = null,
+                        contentScale = ContentScale.FillBounds
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    repeat(pagerState.pageCount) {
+                        val color = if (pagerState.currentPage == it) Color.DarkGray else Color.LightGray
+                        Box(
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .clip(CircleShape)
+                                .background(color)
+                                .size(8.dp)
+                        )
+                    }
+                }
             }
+
 
             Spacer(modifier = Modifier.height(12.dp))
             Text(text = "Характеристики", fontWeight = FontWeight.Bold, fontSize = 24.sp)
