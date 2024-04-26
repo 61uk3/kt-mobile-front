@@ -32,7 +32,10 @@ import com.example.kt_mobile_front.components.UserAvatarName
 import com.example.kt_mobile_front.data.ItemShortLot
 
 @Composable
-fun ElseProfileScreen() {
+fun ElseProfileScreen(
+    onLotClickListener: () -> Unit,
+    onBackClickListener: () -> Unit
+) {
     val lotList = mutableListOf<ItemShortLot>().apply {
         add(ItemShortLot(id = 1, photo = "фото", name = "шруповерт"))
         add(ItemShortLot(id = 2, photo = "фото", name = "перфоратор"))
@@ -51,7 +54,7 @@ fun ElseProfileScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start
             ) {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = { onBackClickListener() }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_arrow_back),
                         contentDescription = null
@@ -79,7 +82,7 @@ fun ElseProfileScreen() {
                     modifier = Modifier
                         .size(220.dp)
                         .padding(4.dp)
-                        .clickable {  },
+                        .clickable { onLotClickListener() },
                     itemShortLot = i
                 )
             }

@@ -64,7 +64,9 @@ import com.example.kt_mobile_front.components.MyTextField
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun EditLotScreen() {
+fun EditLotScreen(
+    onBackClickListener: () -> Unit
+) {
     val listState = listOf("Новое", "Как новое", "Бу")
     val listCategory = listOf("Инструменты", "Электроника")
 
@@ -95,7 +97,9 @@ fun EditLotScreen() {
             CenterAlignedTopAppBar(
                 title = { Text(text = "Редактирование лота") },
                 navigationIcon = {
-                    IconButton(onClick = {  }) {
+                    IconButton(onClick = {
+                        onBackClickListener()
+                    }) {
                         Icon(painter = painterResource(id = R.drawable.ic_arrow_back), contentDescription = null)
                     }
                 }

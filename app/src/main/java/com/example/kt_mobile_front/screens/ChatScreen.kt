@@ -50,7 +50,11 @@ import com.example.kt_mobile_front.data.Message
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ChatScreen() {
+fun ChatScreen(
+    onBackClickListener: () -> Unit,
+    onUserClickListener: () -> Unit,
+    onLotClickListener: () -> Unit
+) {
     val (message, setMessage) = remember {
         mutableStateOf("")
     }
@@ -71,7 +75,9 @@ fun ChatScreen() {
                 TopAppBar(
                     title = {
                         Row(
-                            modifier = Modifier.clickable { },
+                            modifier = Modifier.clickable {
+                                                          onUserClickListener()
+                            },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Image(
@@ -87,7 +93,7 @@ fun ChatScreen() {
 
                     },
                     navigationIcon = {
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = { onBackClickListener() }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_arrow_back),
                                 contentDescription = null
@@ -99,7 +105,10 @@ fun ChatScreen() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 56.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+                        .padding(start = 56.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+                        .clickable {
+                                   onLotClickListener()
+                        },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {

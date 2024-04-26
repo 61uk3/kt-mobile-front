@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.kt_mobile_front.R
 import com.example.kt_mobile_front.components.LotCard
 import com.example.kt_mobile_front.data.ItemShortLot
@@ -49,7 +50,9 @@ import com.example.kt_mobile_front.data.ItemShortLot
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CatalogScreen() {
+fun CatalogScreen(
+    onLotClickListener: () -> Unit
+) {
     val lotList = mutableListOf<ItemShortLot>().apply {
         add(ItemShortLot(id = 1, photo = "фото", name = "шруповерт"))
         add(ItemShortLot(id = 2, photo = "фото", name = "перфоратор"))
@@ -137,7 +140,7 @@ fun CatalogScreen() {
                     modifier = Modifier
                         .size(220.dp)
                         .padding(4.dp)
-                        .clickable { },
+                        .clickable { onLotClickListener() },
                     itemShortLot = it
                 )
             }

@@ -40,7 +40,9 @@ import com.example.kt_mobile_front.components.MyTextField
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun EditProfileScreen(){
+fun EditProfileScreen(
+    onBackClickListener: () -> Unit
+){
     var selectedImageUris by remember {
         mutableStateOf<Uri?>(null)
     }
@@ -57,7 +59,7 @@ fun EditProfileScreen(){
             CenterAlignedTopAppBar(
                 title = { Text(text = "Редактирование профиля") },
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { onBackClickListener() }) {
                         Icon(painter = painterResource(id = R.drawable.ic_arrow_back), contentDescription = null)
                     }
                 }

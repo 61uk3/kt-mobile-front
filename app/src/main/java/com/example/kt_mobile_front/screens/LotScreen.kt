@@ -1,9 +1,11 @@
 package com.example.kt_mobile_front.screens
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,17 +43,27 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.kt_mobile_front.R
+import com.example.kt_mobile_front.navigation.Graph
+import com.example.kt_mobile_front.navigation.LotRouteScreen
+import com.example.kt_mobile_front.navigation.MainRouteScreen
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LotScreen(
-    myLot: Boolean = false
+    previousScreen: String = "",
+    myLot: Boolean = false,
+    onBackClickListener: () -> Unit,
+    onUserClickListener: () -> Unit = {},
+    onWriteClickListener: () -> Unit = {},
+    onEditClickListener: () -> Unit = {}
 ) {
-    val pagerState = rememberPagerState(pageCount = {3})
+
+    val pagerState = rememberPagerState(pageCount = { 3 })
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -62,7 +74,7 @@ fun LotScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { onBackClickListener() }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_arrow_back),
                             contentDescription = null
@@ -71,7 +83,9 @@ fun LotScreen(
                 },
                 actions = {
                     if (myLot) {
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = {
+                            onEditClickListener()
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_pen),
                                 contentDescription = null
@@ -94,11 +108,12 @@ fun LotScreen(
                 .padding(start = 8.dp, top = 64.dp, end = 8.dp, bottom = 4.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(330.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.Red)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(330.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Red)
             )
             {
                 HorizontalPager(
@@ -106,7 +121,7 @@ fun LotScreen(
                     modifier = Modifier
                         .fillMaxSize(),
                     pageSpacing = 8.dp
-                ) {page ->
+                ) { page ->
                     Image(
                         modifier = Modifier.fillMaxSize(),
                         painter = painterResource(id = R.drawable.qq), contentDescription = null,
@@ -122,7 +137,8 @@ fun LotScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     repeat(pagerState.pageCount) {
-                        val color = if (pagerState.currentPage == it) Color.DarkGray else Color.LightGray
+                        val color =
+                            if (pagerState.currentPage == it) Color.DarkGray else Color.LightGray
                         Box(
                             modifier = Modifier
                                 .padding(2.dp)
@@ -161,7 +177,13 @@ fun LotScreen(
             HorizontalDivider()
 
             Spacer(modifier = Modifier.height(8.dp))
-            UserCard(userAvatar = R.drawable.user_avatar, userName = "Александр")
+            UserCard(
+                myLot = myLot,
+                previousScreen = previousScreen,
+                userAvatar = R.drawable.user_avatar,
+                userName = "Александр",
+                onUserClickListener = onUserClickListener
+            )
             Spacer(modifier = Modifier.height(4.dp))
             if (!myLot) {
                 Box(
@@ -170,7 +192,9 @@ fun LotScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Button(
-                        onClick = { /*TODO*/ }
+                        onClick = {
+                            onWriteClickListener()
+                        }
                     ) {
                         Text(text = "Написать")
                     }
@@ -206,25 +230,52 @@ fun CharRow(
 
 @Composable
 private fun UserCard(
+    myLot: Boolean,
+    previousScreen: String = "",
     userAvatar: Int,
-    userName: String
+    userName: String,
+    onUserClickListener: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
-        Row(
+    Log.d("previousScreen", previousScreen)
+    if (previousScreen != MainRouteScreen.ElseProfile.route && !myLot) {
+        Card(
             modifier = Modifier
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .clickable { onUserClickListener() }
         ) {
-            Image(
-                modifier = Modifier.size(40.dp),
-                painter = painterResource(id = userAvatar),
-                contentDescription = null
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = userName)
+            Row(
+                modifier = Modifier
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    modifier = Modifier.size(40.dp),
+                    painter = painterResource(id = userAvatar),
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = userName)
+            }
+        }
+    } else {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    modifier = Modifier.size(40.dp),
+                    painter = painterResource(id = userAvatar),
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = userName)
+            }
         }
     }
+
 }

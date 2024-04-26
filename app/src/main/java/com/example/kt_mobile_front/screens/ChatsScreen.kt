@@ -23,28 +23,85 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kt_mobile_front.components.ChatItem
 import com.example.kt_mobile_front.components.UserInfo
 import com.example.kt_mobile_front.data.ItemChat
 import com.example.kt_mobile_front.ui.theme.KtmobilefrontTheme
 
 @Composable
 fun ChatsScreen(
-    chats: List<ItemChat>
+    onChatClickListener: () -> Unit
 ){
+    val chats = mutableListOf<ItemChat>().apply {
+        repeat(20){
+            add(
+                ItemChat(id = it)
+            )
+        }
+    }
     LazyColumn(contentPadding = PaddingValues(top= 12.dp, start = 4.dp, end = 4.dp, bottom = 92.dp)){
         items(
             items = chats,
             key = { it.id }
         ){chat ->
-            ChatItem(chat = chat)
+            ChatItem(
+                chat = chat,
+                onChatClickListener = onChatClickListener
+            )
             if(chats.indexOf(chat) != chats.size-1){
                 HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(),
                     thickness = 1.dp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatItem(
+    chat: ItemChat,
+    onChatClickListener: () -> Unit
+){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .clickable { onChatClickListener() }
+    ){
+        Image(
+            modifier = Modifier
+                .size(64.dp),
+            painter = painterResource(id = chat.lotImageId),
+            contentDescription = null
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column{
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = chat.lotName,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = chat.messageTime,
+                    fontSize = 12.sp
+                )
+            }
+            Spacer(modifier = Modifier.width(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(text = chat.userName + ": ")
+                Text(
+                    text = chat.messageText,
+                    fontSize = 16.sp
                 )
             }
         }
