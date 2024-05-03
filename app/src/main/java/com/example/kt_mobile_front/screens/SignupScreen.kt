@@ -1,6 +1,7 @@
 package com.example.kt_mobile_front.screens
 
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,10 +30,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -48,11 +51,17 @@ import com.example.kt_mobile_front.components.CardChosePhoto
 import com.example.kt_mobile_front.components.DropDownMenu
 import com.example.kt_mobile_front.components.ImageBox
 import com.example.kt_mobile_front.components.MyTextField
+import com.example.kt_mobile_front.data.SignUpUserData
+import com.example.kt_mobile_front.requests.postPhotoSignUp
+import com.example.kt_mobile_front.requests.postSignUp
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignupScreen(
     loginClickListener: () -> Unit
 ){
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var selectedImageUris by remember {
         mutableStateOf<Uri?>(null)
     }
@@ -175,9 +184,29 @@ fun SignupScreen(
             }
         )
         
-        
+        var id = ""
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = { /*TODO*/ }) {
+        Button(onClick = {
+            try {
+                coroutineScope.launch {
+                    id = postSignUp(
+                        signUpUserData = SignUpUserData(
+                            login, password, name, phone
+                        ),
+                        "Череповец"
+                    )
+                    postPhotoSignUp(
+                        photo = selectedImageUris!!,
+                        context = context,
+                        id = id
+                    )
+                }
+            } catch (ex: Exception){
+                Log.d("exxxxxxxxx", ex.message!!)
+            }
+
+
+        }) {
             Text(text = "Зарегистрироваться")
         }
         Spacer(modifier = Modifier.height(32.dp))

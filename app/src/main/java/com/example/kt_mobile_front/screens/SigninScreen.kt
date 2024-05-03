@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,12 +45,16 @@ import androidx.compose.ui.unit.sp
 import com.example.kt_mobile_front.R
 import com.example.kt_mobile_front.components.ButtonToSite
 import com.example.kt_mobile_front.components.MyTextField
+import com.example.kt_mobile_front.data.SignInData
+import com.example.kt_mobile_front.requests.postSignIn
+import kotlinx.coroutines.launch
 
 @Composable
 fun SigninScreen(
     signinClickListener: () -> Unit,
     signupClickListener: () -> Unit
 ){
+    val coroutineScope = rememberCoroutineScope()
     val (login, setLogin) = remember {
         mutableStateOf("")
     }
@@ -108,7 +113,17 @@ fun SigninScreen(
             }
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { signinClickListener() }) {
+        Button(onClick = {
+            coroutineScope.launch {
+                try {
+                    postSignIn(signInData = SignInData(login, password))
+                    signinClickListener()
+                } catch (e: Exception) {
+
+                }
+            }
+
+        }) {
             Text(text = "Войти")
         }
         Spacer(modifier = Modifier.height(64.dp))

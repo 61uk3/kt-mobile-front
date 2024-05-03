@@ -14,13 +14,18 @@ fun NavGraphBuilder.lotNavGraph(rootNavController: NavHostController){
         route = Graph.LotGraph,
         startDestination = LotRouteScreen.Lot.route
     ){
-        composable(route = LotRouteScreen.Lot.route){
+        composable(
+            route = "${Graph.LotGraph}/{${Graph.LotId}}",
+            arguments = listOf(navArgument(Graph.LotId){type = NavType.StringType})
+        ){
+            val arguments = requireNotNull(it.arguments)
             LotScreen(
+                lotId = arguments.getString(Graph.LotId, ""),
                 onBackClickListener = {
                     rootNavController.navigateUp()
                 },
                 onUserClickListener = {
-                    rootNavController.navigate(route = MainRouteScreen.ElseProfile.route)
+                    rootNavController.navigate(route = "${MainRouteScreen.ElseProfile.route}/${it}")
                 },
                 previousScreen = rootNavController.previousBackStackEntry?.destination?.route.toString(),
                 onWriteClickListener = {
@@ -28,10 +33,15 @@ fun NavGraphBuilder.lotNavGraph(rootNavController: NavHostController){
                 }
             )
         }
-        composable(route = MainRouteScreen.ElseProfile.route){
+        composable(
+            route = "${MainRouteScreen.ElseProfile.route}/{${Graph.UserId}}",
+            arguments = listOf(navArgument(Graph.UserId){type = NavType.StringType})
+        ){
+            val arguments = requireNotNull(it.arguments)
             ElseProfileScreen(
+                userId = arguments.getString(Graph.UserId, ""),
                 onLotClickListener = {
-                    rootNavController.navigate(LotRouteScreen.Lot.route)
+                    rootNavController.navigate("${Graph.LotGraph}/${it}")
                 },
                 onBackClickListener = {
                     rootNavController.navigateUp()
@@ -46,8 +56,13 @@ fun NavGraphBuilder.myLotNavGraph(rootNavController: NavHostController){
         route = Graph.MyLotGraph,
         startDestination = LotRouteScreen.MyLot.route
     ){
-        composable(route = LotRouteScreen.MyLot.route){
+        composable(
+            route = "${Graph.MyLotGraph}/{${Graph.LotId}}",
+            arguments = listOf(navArgument(Graph.LotId){type = NavType.StringType})
+        ){
+            val arguments = requireNotNull(it.arguments)
             LotScreen(
+                lotId = arguments.getString(Graph.LotId, ""),
                 myLot = true,
                 onBackClickListener = {
                     rootNavController.navigateUp()

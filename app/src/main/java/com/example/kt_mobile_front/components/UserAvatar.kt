@@ -14,20 +14,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.kt_mobile_front.R
 
 @Composable
 fun UserAvatarName(
     modifier: Modifier = Modifier,
-    userAvatar: Int,
+    userAvatar: String,
     userName: String? = ""
 ){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
+        AsyncImage(
             modifier = modifier,
-            painter = painterResource(id = userAvatar),
+            model = userAvatar,
             contentDescription = null
         )
         if (userName != "") {

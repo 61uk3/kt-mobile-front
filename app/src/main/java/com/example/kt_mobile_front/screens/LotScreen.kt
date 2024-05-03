@@ -34,43 +34,65 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.kt_mobile_front.R
+import com.example.kt_mobile_front.data.LotData
 import com.example.kt_mobile_front.navigation.Graph
 import com.example.kt_mobile_front.navigation.LotRouteScreen
 import com.example.kt_mobile_front.navigation.MainRouteScreen
+import com.example.kt_mobile_front.requests.getItemById
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LotScreen(
+    lotId: String = "",
     previousScreen: String = "",
     myLot: Boolean = false,
     onBackClickListener: () -> Unit,
-    onUserClickListener: () -> Unit = {},
+    onUserClickListener: (String) -> Unit = {},
     onWriteClickListener: () -> Unit = {},
     onEditClickListener: () -> Unit = {}
 ) {
+    val (Item, setItem) = remember {
+        mutableStateOf<LotData?>(null)
+    }
+    val coroutineScope = rememberCoroutineScope()
+    SideEffect {
+        coroutineScope.launch {
+            try {
+                setItem(getItemById(lotId))
+            } catch (t: Exception) {
 
-    val pagerState = rememberPagerState(pageCount = { 3 })
+            }
+        }
+    }
+    val pagerState = rememberPagerState(pageCount = { Item?.photos?.size ?: 0 })
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
 
                 title = {
                     Text(
-                        text = "Название"
+                        text = Item?.name ?: ""
                     )
                 },
                 navigationIcon = {
@@ -113,7 +135,6 @@ fun LotScreen(
                     .fillMaxWidth()
                     .height(330.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.Red)
             )
             {
                 HorizontalPager(
@@ -122,10 +143,13 @@ fun LotScreen(
                         .fillMaxSize(),
                     pageSpacing = 8.dp
                 ) { page ->
-                    Image(
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(Item?.photos?.get(page)?.photo)
+                            .build(),
+                        contentDescription = "Image",
                         modifier = Modifier.fillMaxSize(),
-                        painter = painterResource(id = R.drawable.qq), contentDescription = null,
-                        contentScale = ContentScale.FillBounds
+                        contentScale = ContentScale.Crop
                     )
                 }
                 Row(
@@ -155,16 +179,16 @@ fun LotScreen(
             Text(text = "Характеристики", fontWeight = FontWeight.Bold, fontSize = 24.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
-            CharRow(title = "Категория:", value = "Инструменты")
-            CharRow(title = "Состояние:", value = "Новое")
-            CharRow(title = "Наличие:", value = "В наличии")
+            CharRow(title = "Категория:", value = Item?.category ?: "")
+            CharRow(title = "Состояние:", value = Item?.condition ?: "")
+
             Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Описание", fontWeight = FontWeight.Bold, fontSize = 24.sp)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Описание",
+                text = Item?.description ?: "",
                 fontSize = 18.sp
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -172,35 +196,42 @@ fun LotScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Местоположение", fontWeight = FontWeight.Bold, fontSize = 24.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            Address(city = "Череповец", street = "Октябрьский проспект", home = "85")
+            Text(text = Item?.address ?: "")
             Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider()
 
             Spacer(modifier = Modifier.height(8.dp))
-            UserCard(
-                myLot = myLot,
-                previousScreen = previousScreen,
-                userAvatar = R.drawable.user_avatar,
-                userName = "Александр",
-                onUserClickListener = onUserClickListener
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            if (!myLot) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Button(
-                        onClick = {
-                            onWriteClickListener()
-                        }
-                    ) {
-                        Text(text = "Написать")
-                    }
-                }
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
+                UserCard(
+                    modifier = Modifier.fillMaxWidth(0.5f),
+                    myLot = myLot,
+                    previousScreen = previousScreen,
+                    userName = Item?.user_name ?: "",
+                    onUserClickListener = onUserClickListener,
+                    userId = Item?.user_id ?: ""
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                if (!myLot) {
+                    Box(
+                        modifier = Modifier,
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = {
+                                onWriteClickListener()
+                            }
+                        ) {
+                            Text(text = "Написать")
+                        }
+                    }
+
+                }
             }
+
         }
     }
 }
@@ -230,30 +261,23 @@ fun CharRow(
 
 @Composable
 private fun UserCard(
+    modifier: Modifier = Modifier,
     myLot: Boolean,
     previousScreen: String = "",
-    userAvatar: Int,
     userName: String,
-    onUserClickListener: () -> Unit
+    userId: String,
+    onUserClickListener: (String) -> Unit
 ) {
-    Log.d("previousScreen", previousScreen)
-    if (previousScreen != MainRouteScreen.ElseProfile.route && !myLot) {
+    if (previousScreen != "${MainRouteScreen.ElseProfile.route}/${userId}" && !myLot) {
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onUserClickListener() }
+            modifier = modifier
+                .clickable { onUserClickListener(userId) }
         ) {
             Row(
                 modifier = Modifier
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    modifier = Modifier.size(40.dp),
-                    painter = painterResource(id = userAvatar),
-                    contentDescription = null
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(text = userName)
             }
         }
@@ -267,12 +291,6 @@ private fun UserCard(
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    modifier = Modifier.size(40.dp),
-                    painter = painterResource(id = userAvatar),
-                    contentDescription = null
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(text = userName)
             }
         }

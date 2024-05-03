@@ -32,7 +32,7 @@ fun MainNavGraph(
         composable(route = MainRouteScreen.Catalog.route){
             CatalogScreen(
                 onLotClickListener = {
-                    rootNavController.navigate(route = Graph.LotGraph)
+                    rootNavController.navigate(route = "${Graph.LotGraph}/${it}")
                 }
             )
         }
@@ -49,7 +49,7 @@ fun MainNavGraph(
         composable(route = MainRouteScreen.Profile.route){
             ProfileScreen(
                 onLotClickListener = {
-                    rootNavController.navigate(route = Graph.MyLotGraph)
+                    rootNavController.navigate(route = "${Graph.MyLotGraph}/${it}")
                 },
                 onEditClickListener = {
                     rootNavController.navigate(route = Graph.EditProfileGraph)

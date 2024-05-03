@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.material3.Card
@@ -19,23 +20,42 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.kt_mobile_front.R
+import com.example.kt_mobile_front.components.LotCard
 import com.example.kt_mobile_front.components.UserAvatarName
+import com.example.kt_mobile_front.data.UserData
+import com.example.kt_mobile_front.requests.getUser
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
-    onLotClickListener: () -> Unit,
+    onLotClickListener: (String) -> Unit,
     onEditClickListener: () -> Unit,
     onPasswordClickListener: () -> Unit
-){
+) {
+    val (User, setUser) = remember {
+        mutableStateOf<UserData?>(null)
+    }
+    val coroutineScope = rememberCoroutineScope()
+    SideEffect {
+        coroutineScope.launch {
+            try {
+                setUser(getUser())
+            } catch (t: Exception) {
+
+            }
+        }
+    }
     var expanded by remember {
         mutableStateOf(false)
     }
@@ -44,7 +64,8 @@ fun ProfileScreen(
             .fillMaxSize()
             .padding(start = 4.dp, top = 4.dp, end = 4.dp, bottom = 84.dp),
         horizontalArrangement = Arrangement.Center,
-        columns = GridCells.Fixed(2)) {
+        columns = GridCells.Fixed(2)
+    ) {
         item(
             span = { GridItemSpan(2) }
         ) {
@@ -53,11 +74,14 @@ fun ProfileScreen(
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                Box{
+                Box {
                     IconButton(
                         onClick = { expanded = true }
                     ) {
-                        Icon(painter = painterResource(id = R.drawable.ic_menu_vert), contentDescription = null)
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_menu_vert),
+                            contentDescription = null
+                        )
                     }
                     DropdownMenu(
                         expanded = expanded,
@@ -66,8 +90,8 @@ fun ProfileScreen(
                         TextButton(
                             onClick = {
                                 expanded = false
-                                      onEditClickListener()
-                                      },
+                                onEditClickListener()
+                            },
                         ) {
                             Text(text = "Редактировать профиль")
                         }
@@ -103,21 +127,20 @@ fun ProfileScreen(
                     modifier = Modifier
                         .size(112.dp)
                         .clip(CircleShape),
-                    userAvatar = R.drawable.user_avatar,
-                    userName = "Александр"
+                    userAvatar = User?.photo ?: "",
+                    userName = User?.name ?: ""
                 )
             }
 
         }
-        items(20){
-            Card(
+        items(User?.items ?: listOf()){
+            LotCard(
                 modifier = Modifier
                     .size(220.dp)
                     .padding(4.dp)
-                    .clickable { onLotClickListener() }
-            ) {
-
-            }
+                    .clickable { onLotClickListener(it.id) },
+                shortLotData = it
+            )
         }
     }
 }

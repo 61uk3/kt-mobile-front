@@ -16,7 +16,7 @@ fun UserInfo(
     modifier: Modifier,
     userName: String,
     chatId: Int,
-    userAvatar: Int
+    userAvatar: String
 ){
     Row(
         verticalAlignment = Alignment.CenterVertically

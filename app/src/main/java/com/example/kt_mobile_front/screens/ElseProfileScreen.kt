@@ -15,32 +15,48 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.kt_mobile_front.R
 import com.example.kt_mobile_front.components.LotCard
 import com.example.kt_mobile_front.components.UserAvatarName
-import com.example.kt_mobile_front.data.ItemShortLot
+import com.example.kt_mobile_front.data.LotData
+import com.example.kt_mobile_front.data.UserData
+import com.example.kt_mobile_front.requests.getItemById
+import com.example.kt_mobile_front.requests.getUser
+import kotlinx.coroutines.launch
 
 @Composable
 fun ElseProfileScreen(
-    onLotClickListener: () -> Unit,
+    userId: String,
+    onLotClickListener: (String) -> Unit,
     onBackClickListener: () -> Unit
 ) {
-    val lotList = mutableListOf<ItemShortLot>().apply {
-        add(ItemShortLot(id = 1, photo = "фото", name = "шруповерт"))
-        add(ItemShortLot(id = 2, photo = "фото", name = "перфоратор"))
-        add(ItemShortLot(id = 3, photo = "фото", name = "набор отверток"))
+    val (User, setUser) = remember {
+        mutableStateOf<UserData?>(null)
     }
+    val coroutineScope = rememberCoroutineScope()
+    SideEffect {
+        coroutineScope.launch {
+            try {
+                setUser(getUser(userId))
+            } catch (t: Exception) {
+
+            }
+        }
+    }
+
     LazyVerticalGrid(
         modifier = Modifier
             .fillMaxSize()
@@ -70,23 +86,24 @@ fun ElseProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(4.dp),
-                userName = "Александр",
-                registrationDate = "12.12.2023",
-                countLot = 10
+                userName = User?.name ?: "",
+                registrationDate = User?.datereg ?: "",
+                countLot = User?.items?.size ?: 0,
+                userAvatar = User?.photo ?: ""
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
-        for (i in lotList) {
+        for (i in User?.items ?: listOf()) {
             item {
                 LotCard(
                     modifier = Modifier
                         .size(220.dp)
                         .padding(4.dp)
-                        .clickable { onLotClickListener() },
-                    itemShortLot = i
+                        .clickable { onLotClickListener(i.id) },
+                    shortLotData = i
                 )
             }
-        }
+       }
     }
 }
 
@@ -96,6 +113,7 @@ fun ElseProfileScreen(
 private fun User(
     modifier: Modifier = Modifier,
     userName: String,
+    userAvatar: String,
     registrationDate: String,
     countLot: Int
 ) {
@@ -106,7 +124,7 @@ private fun User(
             modifier = Modifier
                 .size(112.dp)
                 .clip(CircleShape),
-            userAvatar = R.drawable.user_avatar
+            userAvatar = userAvatar
         )
         Spacer(modifier = Modifier.width(16.dp))
 
