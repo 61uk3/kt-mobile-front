@@ -2,6 +2,7 @@ package com.example.kt_mobile_front.requests
 
 import android.content.Context
 import android.net.Uri
+import com.example.kt_mobile_front.data.ChatData
 import com.example.kt_mobile_front.data.CreateLotData
 import com.example.kt_mobile_front.data.LotData
 import com.example.kt_mobile_front.data.ShortChatData
@@ -158,8 +159,16 @@ suspend fun getUser(): UserData {
     }.body()
 }
 
-suspend fun getChats(): List<ShortChatData>{
+suspend fun getChats(): List<ShortChatData> {
     return client.get(Route.CHAT_URL) {
+        headers {
+            append(HttpHeaders.Authorization, token)
+        }
+    }.body()
+}
+
+suspend fun getChatById(id: String): ChatData {
+    return client.get(Route.CHAT_URL + "/" + id) {
         headers {
             append(HttpHeaders.Authorization, token)
         }

@@ -39,7 +39,7 @@ fun MainNavGraph(
         composable(route = MainRouteScreen.Chats.route){
             ChatsScreen(
                 onChatClickListener = {
-                    rootNavController.navigate(route = Graph.ChatGraph)
+                    rootNavController.navigate(route = "${Graph.ChatGraph}/${it}")
                 }
             )
         }

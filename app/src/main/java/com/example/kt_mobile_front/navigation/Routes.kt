@@ -11,6 +11,7 @@ object Graph {
     const val ChangePasswordGraph = "changePasswordGraph"
     const val LotId = "lotId"
     const val UserId = "userId"
+    const val ChatId = "chatId"
 }
 
 sealed class AuthRouteScreen(val route: String){

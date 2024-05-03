@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ChatsScreen(
-    onChatClickListener: () -> Unit
+    onChatClickListener: (String) -> Unit
 ) {
     val (chatList, setChatList) = remember {
         mutableStateOf<List<ShortChatData>>(listOf())
@@ -74,13 +74,13 @@ fun ChatsScreen(
 @Composable
 private fun ChatItem(
     chat: ShortChatData,
-    onChatClickListener: () -> Unit
+    onChatClickListener: (String) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clickable { onChatClickListener() }
+            .clickable { onChatClickListener(chat.id) }
     ) {
         AsyncImage(
             modifier = Modifier

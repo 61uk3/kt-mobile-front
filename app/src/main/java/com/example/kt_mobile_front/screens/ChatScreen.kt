@@ -34,8 +34,10 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,30 +46,39 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.kt_mobile_front.R
+import com.example.kt_mobile_front.data.ChatData
+import com.example.kt_mobile_front.data.LotData
 import com.example.kt_mobile_front.data.Message
+import com.example.kt_mobile_front.requests.getChatById
+import com.example.kt_mobile_front.requests.getItemById
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ChatScreen(
+    chatId: String,
     onBackClickListener: () -> Unit,
-    onUserClickListener: () -> Unit,
-    onLotClickListener: () -> Unit
+    onUserClickListener: (String) -> Unit,
+    onLotClickListener: (String) -> Unit
 ) {
     val (message, setMessage) = remember {
         mutableStateOf("")
     }
-    val messageList = mutableListOf<Message>().apply {
-        add(Message(1, "Приветffffffffffffffffffffffffffffffffffffffffffffff" +
-                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" +
-                "fffffffffffffffffffffffffffffffffffffffffffffffff"))
-        add(Message(1, "Приветffffffffffffffffffffffffffffffffffffffffffffff" +
-                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" +
-                "fffffffffffffffffffffffffffffffffffffffffffffffff"))
-        add(Message(2, "Приветffffffffffffffffffffffffffffffffffffffffffffff" +
-                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" +
-                "fffffffffffffffffffffffffffffffffffffffffffffffff"))
+    val (Chat, setChat) = remember {
+        mutableStateOf<ChatData?>(null)
+    }
+    val coroutineScope = rememberCoroutineScope()
+    SideEffect {
+        coroutineScope.launch {
+            try {
+                setChat(getChatById(chatId))
+            } catch (t: Exception) {
+
+            }
+        }
     }
     Scaffold(
         topBar = {
@@ -76,19 +87,20 @@ fun ChatScreen(
                     title = {
                         Row(
                             modifier = Modifier.clickable {
-                                                          onUserClickListener()
+                                onUserClickListener(Chat?.user_id ?: "")
                             },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Image(
+                            AsyncImage(
                                 modifier = Modifier.size(40.dp),
-                                painter = painterResource(id = R.drawable.user_avatar),
+                                model = Chat?.user_photo ?: "",
                                 contentDescription = null
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = "user", fontSize = 24.sp)
-
-
+                            Text(
+                                text = Chat?.user_name ?: "",
+                                fontSize = 24.sp
+                            )
                         }
 
                     },
@@ -107,16 +119,16 @@ fun ChatScreen(
                         .fillMaxWidth()
                         .padding(start = 56.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
                         .clickable {
-                                   onLotClickListener()
+                            onLotClickListener(Chat?.lot_id ?: "")
                         },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Lot", fontSize = 24.sp)
+                    Text(text = Chat?.lot_name  ?: "", fontSize = 24.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Box(modifier = Modifier.size(50.dp)) {
-                        Image(
-                            painter = painterResource(id = R.drawable.qq),
+                        AsyncImage(
+                            model = Chat?.lot_photo  ?: "",
                             contentDescription = null
                         )
                     }
@@ -164,8 +176,8 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            for (m in messageList) {
-                if (m.userId == 1) {
+            for (m in Chat?.messages ?: listOf()) {
+                if (m.id_sender == (Chat?.user_id ?: "")) {
                     item {
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Card(
@@ -183,10 +195,12 @@ fun ChatScreen(
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     item {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
                             Card(
                                 modifier = Modifier
                                     .widthIn(max = 310.dp)

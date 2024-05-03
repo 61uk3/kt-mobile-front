@@ -1,6 +1,10 @@
 package com.example.kt_mobile_front.data
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Message(
-    val userId: Int,
-    val message: String
+    var id_sender: String,
+    var date_send: String,
+    var message: String
 )
