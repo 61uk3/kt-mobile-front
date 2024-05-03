@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.example.kt_mobile_front.data.CreateLotData
 import com.example.kt_mobile_front.data.LotData
+import com.example.kt_mobile_front.data.ShortChatData
 import com.example.kt_mobile_front.data.ShortLotData
 import com.example.kt_mobile_front.data.SignInData
 import com.example.kt_mobile_front.data.SignInResponseData
@@ -35,12 +36,10 @@ val client = HttpClient(CIO) {
     }
 }
 
-private const val SIGNIN_URL = "http://90.156.225.87:8080/auth"
-
 suspend fun postSignIn(
     signInData: SignInData
 ): SignInResponseData {
-    val response = client.post(SIGNIN_URL) {
+    val response = client.post(Route.SIGNIN_URL) {
         contentType(Json)
         setBody(signInData)
     }.body<SignInResponseData>()
@@ -48,31 +47,28 @@ suspend fun postSignIn(
     return response
 }
 
-private const val SIGNUP_URL = "http://90.156.225.87:8080/register"
-var id = ""
 suspend fun postSignUp(
     signUpUserData: SignUpUserData,
     town: String
 ): String {
     val response = client.submitFormWithBinaryData(
-        url = SIGNUP_URL,
+        url = Route.SIGNUP_URL,
         formData = formData {
             append("user_json", kotlinx.serialization.json.Json.encodeToString(signUpUserData))
             append("town", town)
         }
     ).body<String>()
-    id = response
     return response
 }
 
-private const val SIGNUP_PHOTO_URL = "http://90.156.225.87:8080/user/"
+
 suspend fun postPhotoSignUp(
     photo: Uri,
     id: String,
     context: Context
 ) {
-    val idLot = client.submitFormWithBinaryData(
-        url = SIGNUP_PHOTO_URL + id + "/photos",
+    return client.submitFormWithBinaryData(
+        url = Route.USER_URL + id + "/photos",
         formData = formData {
             append(
                 "photos",
@@ -83,21 +79,21 @@ suspend fun postPhotoSignUp(
                         HttpHeaders.ContentDisposition,
                         "filename=\"${UUID.randomUUID()}.png\""
                     )
-                })
-
-
+                }
+            )
         }
-    ).body<String>()
+    ).body()
 }
 
-private const val ITEM_URL = "http://90.156.225.87:8080/items/"
 
 suspend fun getAllItems(): List<ShortLotData> {
-    return client.get(ITEM_URL).body()
+    return client.get(Route.ITEM_URL).body()
 }
+
 suspend fun getItemById(id: String): LotData {
-    return client.get(ITEM_URL + id).body()
+    return client.get(Route.ITEM_URL + id).body()
 }
+
 suspend fun postAddLot(
     createLotData: CreateLotData,
     cat: String,
@@ -106,8 +102,8 @@ suspend fun postAddLot(
     context: Context
 ) {
     val idLot = client.submitFormWithBinaryData(
-        url = ITEM_URL,
-        formData = formData{
+        url = Route.ITEM_URL,
+        formData = formData {
             append("lot_json", kotlinx.serialization.json.Json.encodeToString(createLotData))
             append("cat", cat)
             append("cond", cond)
@@ -125,7 +121,7 @@ suspend fun postPhotosLot(
     id: String,
     context: Context
 ) {
-    val url = ITEM_URL + id.drop(1).dropLast(1) + "/photos"
+    val url = Route.ITEM_URL + id.drop(1).dropLast(1) + "/photos"
     return client.submitFormWithBinaryData(
         url = url,
         formData = formData {
@@ -150,14 +146,20 @@ suspend fun postPhotosLot(
     }.body()
 }
 
-private const val USER_URL = "http://90.156.225.87:8080/user/"
-
-suspend fun getUser(id: String): UserData{
-    return client.get(USER_URL + id).body()
+suspend fun getUser(id: String): UserData {
+    return client.get(Route.USER_URL + id).body()
 }
 
-suspend fun getUser(): UserData{
-    return client.get(USER_URL){
+suspend fun getUser(): UserData {
+    return client.get(Route.USER_URL) {
+        headers {
+            append(HttpHeaders.Authorization, token)
+        }
+    }.body()
+}
+
+suspend fun getChats(): List<ShortChatData>{
+    return client.get(Route.CHAT_URL) {
         headers {
             append(HttpHeaders.Authorization, token)
         }

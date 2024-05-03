@@ -15,7 +15,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.kt_mobile_front.navigation.NavigationItem
-import com.example.kt_mobile_front.data.ItemChat
 import com.example.kt_mobile_front.navigation.graphs.MainNavGraph
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
