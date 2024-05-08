@@ -38,6 +38,7 @@ import com.example.kt_mobile_front.R
 import com.example.kt_mobile_front.components.LotCard
 import com.example.kt_mobile_front.data.ShortLotData
 import com.example.kt_mobile_front.requests.getAllItems
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "MutableCollectionMutableState")
@@ -49,7 +50,7 @@ fun CatalogScreen(
     val coroutineScope = rememberCoroutineScope()
     val lotList = mutableListOf<ShortLotData>()
     SideEffect {
-        coroutineScope.launch {
+        coroutineScope.launch(Dispatchers.IO) {
             try {
                 lotList.apply {
                     getAllItems().forEach {

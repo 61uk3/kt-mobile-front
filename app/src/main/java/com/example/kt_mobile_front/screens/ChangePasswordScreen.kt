@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.kt_mobile_front.R
 import com.example.kt_mobile_front.components.MyTextField
+import com.example.kt_mobile_front.requests.putPassword
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -36,6 +39,7 @@ import com.example.kt_mobile_front.components.MyTextField
 fun ChangePasswordScreen(
     onBackClickListener: () -> Unit
 ){
+    val coroutineScope = rememberCoroutineScope()
     val (currentPassword, setCurrentPassword) = remember {
         mutableStateOf("")
     }
@@ -147,7 +151,12 @@ fun ChangePasswordScreen(
                 }
             )
             Spacer(modifier = Modifier.height(6.dp))
-            Button(onClick = { /*TODO*/ }) {
+            Button(onClick = {
+                coroutineScope.launch {
+                    putPassword(currentPassword, newPassword)
+                }
+
+            }) {
                 Text(text = "Изменить пароль")
             }
         }

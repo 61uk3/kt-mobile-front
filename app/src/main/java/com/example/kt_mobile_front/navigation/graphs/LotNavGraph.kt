@@ -29,7 +29,7 @@ fun NavGraphBuilder.lotNavGraph(rootNavController: NavHostController){
                 },
                 previousScreen = rootNavController.previousBackStackEntry?.destination?.route.toString(),
                 onWriteClickListener = {
-                    rootNavController.navigate(route = MainRouteScreen.Chat.route)
+                    rootNavController.navigate(route = "${Graph.ChatGraph}/${it}")
                 }
             )
         }
@@ -69,6 +69,9 @@ fun NavGraphBuilder.myLotNavGraph(rootNavController: NavHostController){
                 },
                 onEditClickListener = {
                     rootNavController.navigate(route = LotRouteScreen.EditLot.route)
+                },
+                onDelClickListener = {
+                    rootNavController.navigateUp()
                 }
             )
         }

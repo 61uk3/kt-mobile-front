@@ -52,11 +52,16 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.kt_mobile_front.R
+import com.example.kt_mobile_front.data.ChatData
 import com.example.kt_mobile_front.data.LotData
 import com.example.kt_mobile_front.navigation.Graph
 import com.example.kt_mobile_front.navigation.LotRouteScreen
 import com.example.kt_mobile_front.navigation.MainRouteScreen
+import com.example.kt_mobile_front.requests.delItem
 import com.example.kt_mobile_front.requests.getItemById
+import com.example.kt_mobile_front.requests.postCreateChat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
 
@@ -69,15 +74,16 @@ fun LotScreen(
     myLot: Boolean = false,
     onBackClickListener: () -> Unit,
     onUserClickListener: (String) -> Unit = {},
-    onWriteClickListener: () -> Unit = {},
-    onEditClickListener: () -> Unit = {}
+    onWriteClickListener: (String) -> Unit = {},
+    onEditClickListener: () -> Unit = {},
+    onDelClickListener: () -> Unit = {}
 ) {
     val (Item, setItem) = remember {
         mutableStateOf<LotData?>(null)
     }
     val coroutineScope = rememberCoroutineScope()
     SideEffect {
-        coroutineScope.launch {
+        coroutineScope.launch(Dispatchers.IO) {
             try {
                 setItem(getItemById(lotId))
             } catch (t: Exception) {
@@ -113,7 +119,12 @@ fun LotScreen(
                                 contentDescription = null
                             )
                         }
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = {
+                            coroutineScope.launch {
+                                delItem(Item?.id ?: "")
+                                onDelClickListener()
+                            }
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_trash),
                                 contentDescription = null
@@ -144,9 +155,7 @@ fun LotScreen(
                     pageSpacing = 8.dp
                 ) { page ->
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(Item?.photos?.get(page)?.photo)
-                            .build(),
+                        model = Item?.photos?.get(page)?.photo,
                         contentDescription = "Image",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
@@ -222,7 +231,11 @@ fun LotScreen(
                         Button(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
-                                onWriteClickListener()
+                                coroutineScope.launch {
+
+                                    onWriteClickListener(postCreateChat(lotId).id)
+                                }
+
                             }
                         ) {
                             Text(text = "Написать")
@@ -234,15 +247,6 @@ fun LotScreen(
 
         }
     }
-}
-
-@Composable
-fun Address(
-    city: String,
-    street: String,
-    home: String
-) {
-    Text(text = "${city}, ${street}, ${home}")
 }
 
 @Composable

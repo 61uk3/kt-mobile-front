@@ -63,10 +63,12 @@ fun SignupScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var selectedImageUris by remember {
-        mutableStateOf<Uri?>(null)
+        mutableStateOf<List<Uri>>(emptyList())
     }
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
+    val multiplePhotosPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(
+            maxItems = 2
+        ),
         onResult = {
             selectedImageUris = it
         }
@@ -84,14 +86,14 @@ fun SignupScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (selectedImageUris != null) {
+        if (!selectedImageUris.isEmpty()) {
             ImageBox(
                 modifier = Modifier
                     .size(220.dp)
                     .clip(RoundedCornerShape(12.dp)),
-                selectedImageUris = selectedImageUris,
+                selectedImageUris = selectedImageUris.get(0),
                 onClickListener = {
-                    photoPickerLauncher.launch(
+                    multiplePhotosPickerLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 }
@@ -102,7 +104,7 @@ fun SignupScreen(
                 .size(220.dp)
                 .padding(4.dp),
                 onClickListener = {
-                    photoPickerLauncher.launch(
+                    multiplePhotosPickerLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 }
@@ -183,28 +185,24 @@ fun SignupScreen(
                 }
             }
         )
-        
-        var id = ""
+
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = {
             try {
                 coroutineScope.launch {
-                    id = postSignUp(
+                    postSignUp(
                         signUpUserData = SignUpUserData(
                             login, password, name, phone
                         ),
-                        "Череповец"
-                    )
-                    postPhotoSignUp(
-                        photo = selectedImageUris!!,
-                        context = context,
-                        id = id
+                        "Череповец",
+                        uris = selectedImageUris,
+                        context = context
                     )
                 }
             } catch (ex: Exception){
                 Log.d("exxxxxxxxx", ex.message!!)
             }
-
+            loginClickListener()
 
         }) {
             Text(text = "Зарегистрироваться")

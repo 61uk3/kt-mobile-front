@@ -5,6 +5,7 @@ import android.net.Uri
 import com.example.kt_mobile_front.data.ChatData
 import com.example.kt_mobile_front.data.CreateLotData
 import com.example.kt_mobile_front.data.LotData
+import com.example.kt_mobile_front.data.PasswordData
 import com.example.kt_mobile_front.data.ShortChatData
 import com.example.kt_mobile_front.data.ShortLotData
 import com.example.kt_mobile_front.data.SignInData
@@ -13,25 +14,38 @@ import com.example.kt_mobile_front.data.SignUpUserData
 import com.example.kt_mobile_front.data.UserData
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.engine.android.Android
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.delete
 import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
+import io.ktor.client.request.preparePut
+import io.ktor.client.request.put
+import io.ktor.client.request.request
 import io.ktor.client.request.setBody
+import io.ktor.client.request.url
+import io.ktor.http.ContentType
+import io.ktor.http.ContentType.Application.FormUrlEncoded
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.Parameters
+import io.ktor.http.formUrlEncode
 import io.ktor.http.headers
+import io.ktor.http.parameters
 import kotlinx.serialization.encodeToString
 import java.util.UUID
 
 var token = ""
-val client = HttpClient(CIO) {
+val client = HttpClient(Android) {
     install(ContentNegotiation) {
         json()
     }
@@ -50,8 +64,10 @@ suspend fun postSignIn(
 
 suspend fun postSignUp(
     signUpUserData: SignUpUserData,
-    town: String
-): String {
+    town: String,
+    uris: List<Uri>,
+    context: Context
+) {
     val response = client.submitFormWithBinaryData(
         url = Route.SIGNUP_URL,
         formData = formData {
@@ -59,40 +75,53 @@ suspend fun postSignUp(
             append("town", town)
         }
     ).body<String>()
-    return response
+    postPhotoSignUp(uris, response, context)
 }
 
 
 suspend fun postPhotoSignUp(
-    photo: Uri,
+    uris: List<Uri>,
     id: String,
-    context: Context
+    context: Context,
 ) {
+    val url = Route.USER_URL + id.drop(1).dropLast(1) + "/photos"
     return client.submitFormWithBinaryData(
-        url = Route.USER_URL + id + "/photos",
+        url = url,
         formData = formData {
-            append(
-                "photos",
-                context.contentResolver.openInputStream(photo)!!.use { it.readBytes() },
-                Headers.build {
-                    append(HttpHeaders.ContentType, "image/png")
-                    append(
-                        HttpHeaders.ContentDisposition,
-                        "filename=\"${UUID.randomUUID()}.png\""
-                    )
-                }
-            )
+            uris.forEach { uri ->
+                append(
+                    "photos",
+                    context.contentResolver.openInputStream(uri)!!.use { it.readBytes() },
+                    Headers.build {
+                        append(HttpHeaders.ContentType, "image/jpeg")
+                        append(
+                            HttpHeaders.ContentDisposition,
+                            "filename=\"${UUID.randomUUID()}.jpeg\""
+                        )
+                    }
+                )
+            }
         }
-    ).body()
+    ){  }.body()
 }
 
 
 suspend fun getAllItems(): List<ShortLotData> {
-    return client.get(Route.ITEM_URL).body()
+    return client.get(Route.ITEM_URL).call.body()
 }
 
 suspend fun getItemById(id: String): LotData {
-    return client.get(Route.ITEM_URL + id).body()
+    return client.get(Route.ITEM_URL + id).call.body()
+}
+
+suspend fun delItem(id: String) {
+    client.delete(
+        Route.ITEM_URL + id
+    ) {
+        headers {
+            append(HttpHeaders.Authorization, token)
+        }
+    }
 }
 
 suspend fun postAddLot(
@@ -131,10 +160,10 @@ suspend fun postPhotosLot(
                     "photos",
                     context.contentResolver.openInputStream(uri)!!.use { it.readBytes() },
                     Headers.build {
-                        append(HttpHeaders.ContentType, "image/png")
+                        append(HttpHeaders.ContentType, "image/jpeg")
                         append(
                             HttpHeaders.ContentDisposition,
-                            "filename=\"${UUID.randomUUID()}.png\""
+                            "filename=\"${UUID.randomUUID()}.jpeg\""
                         )
                     }
                 )
@@ -146,6 +175,7 @@ suspend fun postPhotosLot(
         }
     }.body()
 }
+
 
 suspend fun getUser(id: String): UserData {
     return client.get(Route.USER_URL + id).body()
@@ -173,4 +203,55 @@ suspend fun getChatById(id: String): ChatData {
             append(HttpHeaders.Authorization, token)
         }
     }.body()
+}
+
+suspend fun putPassword(
+    old_pass: String,
+    new_pass: String
+) {
+    client.put {
+        url(Route.PASSWORD_URL)
+        contentType(Json)
+        setBody(
+            formData {
+
+            }
+        )
+        headers {
+            append(HttpHeaders.Authorization, token)
+        }
+    }
+}
+
+suspend fun postCreateChat(
+    id: String
+): ChatData {
+    val url = Route.CHAT_URL + "/create/" + id
+    return client.submitFormWithBinaryData(
+        url,
+        formData {
+
+        }
+    ) {
+        headers {
+            append(HttpHeaders.Authorization, token)
+        }
+    }.body<ChatData>()
+}
+
+suspend fun postMessage(
+    id: String,
+    msg: String
+) {
+  val url = Route.CHAT_URL + "/" + id
+  client.submitFormWithBinaryData(
+      url,
+      formData {
+          append("message", msg)
+      }
+  ) {
+      headers {
+          append(HttpHeaders.Authorization, token)
+      }
+  }
 }

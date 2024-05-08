@@ -1,5 +1,6 @@
 package com.example.kt_mobile_front.screens
 
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +14,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
@@ -35,6 +36,7 @@ import com.example.kt_mobile_front.components.LotCard
 import com.example.kt_mobile_front.components.UserAvatarName
 import com.example.kt_mobile_front.data.UserData
 import com.example.kt_mobile_front.requests.getUser
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -48,7 +50,7 @@ fun ProfileScreen(
     }
     val coroutineScope = rememberCoroutineScope()
     SideEffect {
-        coroutineScope.launch {
+        coroutineScope.launch(Dispatchers.IO) {
             try {
                 setUser(getUser())
             } catch (t: Exception) {

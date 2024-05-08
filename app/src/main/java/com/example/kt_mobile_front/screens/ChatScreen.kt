@@ -53,6 +53,7 @@ import com.example.kt_mobile_front.data.LotData
 import com.example.kt_mobile_front.data.Message
 import com.example.kt_mobile_front.requests.getChatById
 import com.example.kt_mobile_front.requests.getItemById
+import com.example.kt_mobile_front.requests.postMessage
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -154,7 +155,13 @@ fun ChatScreen(
                     },
                     trailingIcon = {
                         if (message != "") {
-                            IconButton(onClick = { /*TODO*/ }) {
+                            IconButton(onClick = {
+                                coroutineScope.launch {
+                                    postMessage(Chat!!.lot_id, message)
+                                }
+                                setMessage("")
+
+                            }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_send),
                                     contentDescription = null

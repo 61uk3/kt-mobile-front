@@ -21,9 +21,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +38,9 @@ import com.example.kt_mobile_front.components.CardChosePhoto
 import com.example.kt_mobile_front.components.DropDownMenu
 import com.example.kt_mobile_front.components.ImageBox
 import com.example.kt_mobile_front.components.MyTextField
+import com.example.kt_mobile_front.data.UserData
+import com.example.kt_mobile_front.requests.getUser
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -43,6 +48,19 @@ import com.example.kt_mobile_front.components.MyTextField
 fun EditProfileScreen(
     onBackClickListener: () -> Unit
 ){
+    val (User, setUser) = remember {
+        mutableStateOf<UserData?>(null)
+    }
+    val coroutineScope = rememberCoroutineScope()
+    SideEffect {
+        coroutineScope.launch {
+            try {
+                setUser(getUser())
+            } catch (t: Exception) {
+
+            }
+        }
+    }
     var selectedImageUris by remember {
         mutableStateOf<Uri?>(null)
     }
