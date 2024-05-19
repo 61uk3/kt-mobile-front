@@ -6,5 +6,8 @@ import kotlinx.serialization.Serializable
 data class ShortLotData(
     var id: String,
     var name: String,
-    var photo: String
+    var photo: String,
+    var town: String,
+    var condition: String,
+    var category: String
 )

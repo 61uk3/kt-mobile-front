@@ -1,7 +1,6 @@
 package com.example.kt_mobile_front.screens
 
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,10 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,11 +32,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -52,7 +50,6 @@ import com.example.kt_mobile_front.components.DropDownMenu
 import com.example.kt_mobile_front.components.ImageBox
 import com.example.kt_mobile_front.components.MyTextField
 import com.example.kt_mobile_front.data.SignUpUserData
-import com.example.kt_mobile_front.requests.postPhotoSignUp
 import com.example.kt_mobile_front.requests.postSignUp
 import kotlinx.coroutines.launch
 
@@ -60,6 +57,11 @@ import kotlinx.coroutines.launch
 fun SignupScreen(
     loginClickListener: () -> Unit
 ){
+    val phoneLength = 12
+    val listTown = listOf("Череповец", "Шексна", "Вологда")
+    var town by remember {
+        mutableStateOf("Город")
+    }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var selectedImageUris by remember {
@@ -73,11 +75,13 @@ fun SignupScreen(
             selectedImageUris = it
         }
     )
+    var phone by remember {
+        mutableStateOf("")
+    }
     val (password, setPassword) = remember { mutableStateOf("") }
     val (confirmPassword, setConfirmPassword) = remember { mutableStateOf("") }
     val (name, setName) = remember { mutableStateOf("") }
     val (login, setLogin) = remember { mutableStateOf("") }
-    val (phone, setPhone) = remember { mutableStateOf("") }
     var passwordHidden by remember { mutableStateOf(true) }
     var confirmPasswordHidden by remember { mutableStateOf(true) }
     Column(
@@ -114,24 +118,28 @@ fun SignupScreen(
         MyTextField(
             label = "Имя",
             value = name,
-            onValueChange = setName
-
+            onValueChange = setName,
+            singleLine = true
         )
         Spacer(modifier = Modifier.height(16.dp))
-        DropDownMenu()
+        DropDownMenu(
+            listTown,
+            town
+        ) {
+            town = it
+        }
         Spacer(modifier = Modifier.height(16.dp))
-        MyTextField(
-            label = "Телефон",
-            value = phone,
-            onValueChange = setPhone,
-            keyboardType = KeyboardType.Phone
-        )
+        PhoneField(phone,
+            mask = "+7-000-000-00-00",
+            maskNumber = '0',
+            onPhoneChanged = { phone = it })
         Spacer(modifier = Modifier.height(16.dp))
 
         MyTextField(
             label = "Логин",
             value = login,
-            onValueChange = setLogin
+            onValueChange = setLogin,
+            singleLine = true
         )
         Spacer(modifier = Modifier.height(16.dp))
         MyTextField(
@@ -156,7 +164,8 @@ fun SignupScreen(
                             contentDescription = null
                         )
                 }
-            }
+            },
+            singleLine = true
         )
 
 
@@ -183,7 +192,8 @@ fun SignupScreen(
                             contentDescription = null
                         )
                 }
-            }
+            },
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -199,8 +209,8 @@ fun SignupScreen(
                         context = context
                     )
                 }
-            } catch (ex: Exception){
-                Log.d("exxxxxxxxx", ex.message!!)
+            } catch (_: Exception){
+
             }
             loginClickListener()
 
@@ -234,4 +244,80 @@ fun SignupScreen(
             }
         }
     }
+}
+
+@Composable
+fun PhoneField(
+    phone: String,
+    modifier: Modifier = Modifier,
+    mask: String = "000 000 00 00",
+    maskNumber: Char = '0',
+    onPhoneChanged: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = phone,
+        onValueChange = { it ->
+            onPhoneChanged(it.take(mask.count { it == maskNumber }))
+        },
+        label = {
+            Text(text = "Номер телефона")
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+        visualTransformation = PhoneVisualTransformation(mask, maskNumber),
+        leadingIcon = {  }
+    )
+}
+
+class PhoneVisualTransformation(val mask: String, val maskNumber: Char) : VisualTransformation {
+
+    private val maxLength = mask.count { it == maskNumber }
+
+    override fun filter(text: AnnotatedString): TransformedText {
+        val trimmed = if (text.length > maxLength) text.take(maxLength) else text
+
+        val annotatedString = buildAnnotatedString {
+            if (trimmed.isEmpty()) return@buildAnnotatedString
+
+            var maskIndex = 0
+            var textIndex = 0
+            while (textIndex < trimmed.length && maskIndex < mask.length) {
+                if (mask[maskIndex] != maskNumber) {
+                    val nextDigitIndex = mask.indexOf(maskNumber, maskIndex)
+                    append(mask.substring(maskIndex, nextDigitIndex))
+                    maskIndex = nextDigitIndex
+                }
+                append(trimmed[textIndex++])
+                maskIndex++
+            }
+        }
+
+        return TransformedText(annotatedString, PhoneOffsetMapper(mask, maskNumber))
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PhoneVisualTransformation) return false
+        if (mask != other.mask) return false
+        if (maskNumber != other.maskNumber) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return mask.hashCode()
+    }
+}
+
+private class PhoneOffsetMapper(val mask: String, val numberChar: Char) : OffsetMapping {
+
+    override fun originalToTransformed(offset: Int): Int {
+        var noneDigitCount = 0
+        var i = 0
+        while (i < offset + noneDigitCount) {
+            if (mask[i++] != numberChar) noneDigitCount++
+        }
+        return offset + noneDigitCount
+    }
+
+    override fun transformedToOriginal(offset: Int): Int =
+        offset - mask.take(offset).count { it != numberChar }
 }

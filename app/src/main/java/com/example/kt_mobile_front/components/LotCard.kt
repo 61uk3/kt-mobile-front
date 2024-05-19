@@ -2,6 +2,7 @@ package com.example.kt_mobile_front.components
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,7 +17,8 @@ fun LotCard(
     shortLotData: ShortLotData
 ) {
     Card(
-        modifier = modifier
+        modifier = modifier,
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
         AsyncImage(
             modifier = Modifier.weight(1f),

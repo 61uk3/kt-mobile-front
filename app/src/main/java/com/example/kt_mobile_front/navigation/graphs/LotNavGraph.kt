@@ -68,15 +68,20 @@ fun NavGraphBuilder.myLotNavGraph(rootNavController: NavHostController){
                     rootNavController.navigateUp()
                 },
                 onEditClickListener = {
-                    rootNavController.navigate(route = LotRouteScreen.EditLot.route)
+                    rootNavController.navigate(route = "${LotRouteScreen.EditLot.route}/${it}")
                 },
                 onDelClickListener = {
                     rootNavController.navigateUp()
                 }
             )
         }
-        composable(route = LotRouteScreen.EditLot.route){
+        composable(
+            route = "${LotRouteScreen.EditLot.route}/{${Graph.EditLotId}}",
+            arguments = listOf(navArgument(Graph.EditLotId){type = NavType.StringType})
+        ){
+            val arguments = requireNotNull(it.arguments)
             EditLotScreen(
+                lotId = arguments.getString(Graph.EditLotId, ""),
                 onBackClickListener = {
                     rootNavController.navigateUp()
                 }

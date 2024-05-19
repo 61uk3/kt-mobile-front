@@ -42,48 +42,104 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.example.kt_mobile_front.R
 import com.example.kt_mobile_front.components.CardChosePhoto
 import com.example.kt_mobile_front.components.ImageBox
 import com.example.kt_mobile_front.components.MyTextField
+import com.example.kt_mobile_front.data.CreateLotData
+import com.example.kt_mobile_front.data.LotData
+import com.example.kt_mobile_front.requests.getItemById
+import com.example.kt_mobile_front.requests.putLot
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun EditLotScreen(
+    lotId: String,
     onBackClickListener: () -> Unit
 ) {
+    val context = LocalContext.current
+    var name by remember {
+        mutableStateOf("")
+    }
+    var desc by remember {
+        mutableStateOf("")
+    }
+    var street by remember {
+        mutableStateOf("")
+    }
+    var home by remember {
+        mutableStateOf("")
+    }
+    var selectedState by remember {
+        mutableStateOf("")
+    }
+    var selectedCategory by remember {
+        mutableStateOf("")
+    }
+    val (Item, setItem) = remember {
+        mutableStateOf<LotData?>(null)
+    }
+    var selectedImageUris by remember {
+        mutableStateOf<List<Uri>>(listOf())
+    }
+    val coroutineScope = rememberCoroutineScope()
+    /*SideEffect {
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                setItem(getItemById(lotId))
+                name = Item?.name ?: ""
+                desc = Item?.description ?: ""
+                street = Item?.address?.split(",", ", ")?.get(1) ?: ""
+                home = Item?.address?.split(",", ", ")?.get(2) ?: ""
+                selectedState = Item?.condition ?: ""
+                selectedCategory = Item?.category ?: ""
+                selectedImageUris = selectedImageUris.plus(Item!!.photos.get(0).photo.toUri())
+            } catch (_: Exception) {
+
+            }
+        }
+    }*/
+    LaunchedEffect(Unit) {
+        try {
+            val item = getItemById(lotId)
+            name = item.name
+            desc = item.description
+            val addressParts = item.address.split(",", ", ")
+            street = addressParts.getOrNull(1) ?: ""
+            home = addressParts.getOrNull(2) ?: ""
+            selectedState = item.condition
+            selectedCategory = item.category
+            selectedImageUris = item.photos.map { it.photo.toUri() }
+        } catch (e: Exception) {
+            Log.e("EditLotScreen", "Error fetching item by ID: $e")
+        }
+    }
     val listState = listOf("Новое", "Как новое", "Бу")
     val listCategory = listOf("Инструменты", "Электроника")
 
-    var selectedState by remember {
-        mutableStateOf("Состояние")
-    }
-    var selectedCategory by remember {
-        mutableStateOf("Категория")
-    }
-    val (title, setTitle) = remember { mutableStateOf("") }
-    val (desc, setDesc) = remember { mutableStateOf("") }
-    val (street, setStreet) = remember { mutableStateOf("") }
-    val (home, setHome) = remember { mutableStateOf("") }
 
-    var selectedImageUris by remember {
-        mutableStateOf<List<Uri?>>(emptyList())
-    }
     val multiplePhotosPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(
             maxItems = 4
@@ -95,12 +151,15 @@ fun EditLotScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = "Редактирование лота") },
+                title = { Text(text = "Редактирование") },
                 navigationIcon = {
                     IconButton(onClick = {
                         onBackClickListener()
                     }) {
-                        Icon(painter = painterResource(id = R.drawable.ic_arrow_back), contentDescription = null)
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = null
+                        )
                     }
                 }
             )
@@ -145,8 +204,8 @@ fun EditLotScreen(
                 OutlinedTextField(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    value = title,
-                    onValueChange = setTitle,
+                    value = name!!,
+                    onValueChange = { name = it },
                     label = { Text(text = "Название") },
                     maxLines = 1
                 )
@@ -160,7 +219,7 @@ fun EditLotScreen(
                     modifier = Modifier
                         .fillMaxWidth(),
                     value = desc,
-                    onValueChange = setDesc,
+                    onValueChange = { desc = it },
                     label = { Text(text = "Описание") }
                 )
 
@@ -187,14 +246,14 @@ fun EditLotScreen(
                     OutlinedTextField(
                         modifier = Modifier,
                         value = street,
-                        onValueChange = setStreet,
+                        onValueChange = { street = it },
                         label = { Text(text = "Улица") }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     OutlinedTextField(
                         modifier = Modifier,
                         value = home,
-                        onValueChange = setHome,
+                        onValueChange = { home = it },
                         label = { Text(text = "Дом") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
@@ -208,7 +267,22 @@ fun EditLotScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Button(
-                        onClick = { /*TODO*/ }) {
+                        onClick = {
+                            coroutineScope.launch {
+                                putLot(
+                                    id = lotId,
+                                    createLotData = CreateLotData(
+                                        name = name,
+                                        description = desc,
+                                        address = "$street,$home"
+                                    ),
+                                    cat = selectedCategory,
+                                    cond = selectedState,
+                                    uris = selectedImageUris,
+                                    context = context
+                                )
+                            }
+                        }) {
                         Text(text = "Сохранить")
                     }
                 }

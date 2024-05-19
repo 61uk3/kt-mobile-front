@@ -10,6 +10,7 @@ object Graph {
     const val EditProfileGraph = "editProfileGraph"
     const val ChangePasswordGraph = "changePasswordGraph"
     const val LotId = "lotId"
+    const val EditLotId = "editLotId"
     const val UserId = "userId"
     const val ChatId = "chatId"
 }

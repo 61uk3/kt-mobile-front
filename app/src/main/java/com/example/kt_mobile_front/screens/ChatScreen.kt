@@ -54,6 +54,7 @@ import com.example.kt_mobile_front.data.Message
 import com.example.kt_mobile_front.requests.getChatById
 import com.example.kt_mobile_front.requests.getItemById
 import com.example.kt_mobile_front.requests.postMessage
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,10 +75,13 @@ fun ChatScreen(
     val coroutineScope = rememberCoroutineScope()
     SideEffect {
         coroutineScope.launch {
-            try {
-                setChat(getChatById(chatId))
-            } catch (t: Exception) {
+            while (true) {
+                try {
+                    setChat(getChatById(chatId))
+                } catch (_: Exception) {
 
+                }
+                delay(7000)
             }
         }
     }
@@ -198,7 +202,7 @@ fun ChatScreen(
                                     bottomEnd = 12.dp
                                 )
                             ) {
-                                Text(text = m.message, modifier = Modifier.padding(4.dp))
+                                Text(text = m.message, modifier = Modifier.padding(6.dp), fontSize = 20.sp)
                             }
                         }
                     }
@@ -219,7 +223,7 @@ fun ChatScreen(
                                     bottomEnd = 0.dp
                                 )
                             ) {
-                                Text(text = m.message, modifier = Modifier.padding(4.dp))
+                                Text(text = m.message, modifier = Modifier.padding(6.dp), fontSize = 20.sp)
                             }
                         }
                     }

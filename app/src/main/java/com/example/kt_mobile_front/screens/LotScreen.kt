@@ -34,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +66,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
 
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -75,10 +77,10 @@ fun LotScreen(
     onBackClickListener: () -> Unit,
     onUserClickListener: (String) -> Unit = {},
     onWriteClickListener: (String) -> Unit = {},
-    onEditClickListener: () -> Unit = {},
+    onEditClickListener: (String) -> Unit = {},
     onDelClickListener: () -> Unit = {}
 ) {
-    val (Item, setItem) = remember {
+    /*val (Item, setItem) = remember {
         mutableStateOf<LotData?>(null)
     }
     val coroutineScope = rememberCoroutineScope()
@@ -86,9 +88,22 @@ fun LotScreen(
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 setItem(getItemById(lotId))
-            } catch (t: Exception) {
+            } catch (_: Exception) {
 
             }
+        }
+    }*/
+    val (Item, setItem) = remember {
+        mutableStateOf<LotData?>(null)
+    }
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        try {
+            val fetchedItem = getItemById(lotId)
+            setItem(fetchedItem)
+        } catch (e: Exception) {
+            Log.e("LotScreen", "Error fetching item by ID: $e")
         }
     }
     val pagerState = rememberPagerState(pageCount = { Item?.photos?.size ?: 0 })
@@ -112,7 +127,7 @@ fun LotScreen(
                 actions = {
                     if (myLot) {
                         IconButton(onClick = {
-                            onEditClickListener()
+                            onEditClickListener(lotId)
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_pen),
@@ -155,10 +170,11 @@ fun LotScreen(
                     pageSpacing = 8.dp
                 ) { page ->
                     AsyncImage(
-                        model = Item?.photos?.get(page)?.photo,
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(Item?.photos?.get(page)?.photo)
+                            .build(),
                         contentDescription = "Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
                 Row(
@@ -215,7 +231,7 @@ fun LotScreen(
             ) {
 
                 UserCard(
-                    modifier = Modifier.fillMaxWidth(0.5f),
+                    modifier = Modifier.fillMaxWidth(0.5f).height(40.dp),
                     myLot = myLot,
                     previousScreen = previousScreen,
                     userName = Item?.user_name ?: "",
@@ -230,6 +246,7 @@ fun LotScreen(
                     ) {
                         Button(
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
                             onClick = {
                                 coroutineScope.launch {
 
@@ -282,7 +299,7 @@ private fun UserCard(
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = userName)
+                Text(text = userName, fontWeight = FontWeight.Bold)
             }
         }
     } else {
@@ -295,7 +312,7 @@ private fun UserCard(
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = userName)
+                Text(text = userName, fontWeight = FontWeight.Bold)
             }
         }
     }

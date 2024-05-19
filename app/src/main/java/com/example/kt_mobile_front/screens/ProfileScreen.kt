@@ -1,9 +1,9 @@
 package com.example.kt_mobile_front.screens
 
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,12 +15,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.kt_mobile_front.R
 import com.example.kt_mobile_front.components.LotCard
@@ -45,17 +46,24 @@ fun ProfileScreen(
     onEditClickListener: () -> Unit,
     onPasswordClickListener: () -> Unit
 ) {
-    val (User, setUser) = remember {
-        mutableStateOf<UserData?>(null)
-    }
     val coroutineScope = rememberCoroutineScope()
-    SideEffect {
+    /*SideEffect {
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 setUser(getUser())
             } catch (t: Exception) {
 
             }
+        }
+    }*/
+    val (User, setUser) = remember { mutableStateOf<UserData?>(null) }
+
+    LaunchedEffect(Unit) {
+        try {
+            val fetchedUser = getUser()
+            setUser(fetchedUser)
+        } catch (e: Exception) {
+            // Обработка ошибки запроса
         }
     }
     var expanded by remember {
@@ -90,27 +98,38 @@ fun ProfileScreen(
                         onDismissRequest = { expanded = false }
                     ) {
                         TextButton(
+                            modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 expanded = false
                                 onEditClickListener()
                             },
+
                         ) {
-                            Text(text = "Редактировать профиль")
+                            Text(text = "Редактировать профиль",
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier.fillMaxWidth(),)
                         }
                         TextButton(
+                            modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 expanded = false
                                 onPasswordClickListener()
                             }
                         ) {
-                            Text(text = "Сменить пароль")
+                            Text(text = "Сменить пароль",
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                         TextButton(
+                            modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 expanded = false
                             }
                         ) {
-                            Text(text = "Выйти")
+                            Text(text = "Выйти",
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier.fillMaxWidth(),)
                         }
                     }
                 }

@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,7 +48,7 @@ import kotlinx.coroutines.launch
 fun CatalogScreen(
     onLotClickListener: (String) -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    /*val coroutineScope = rememberCoroutineScope()
     val lotList = mutableListOf<ShortLotData>()
     SideEffect {
         coroutineScope.launch(Dispatchers.IO) {
@@ -57,9 +58,21 @@ fun CatalogScreen(
                         add(it)
                     }
                 }
-            } catch (t: Exception) {
+            } catch (_: Exception) {
 
             }
+        }
+    }*/
+
+    val coroutineScope = rememberCoroutineScope()
+    val lotList by remember { mutableStateOf(mutableListOf<ShortLotData>()) }
+
+    // Вызов getAllItems() происходит только один раз при инициализации компонента
+    LaunchedEffect(key1 = Unit) {
+        try {
+            lotList.addAll(getAllItems())
+        } catch (_: Exception) {
+            // Обработка ошибок при получении данных
         }
     }
 

@@ -17,12 +17,11 @@ import androidx.compose.ui.Modifier
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropDownMenu(){
-    val list = listOf("Череповец", "Вологда", "Шексна")
-
-    var selectedText by remember {
-        mutableStateOf("Город")
-    }
+fun DropDownMenu(
+    list: List<String>,
+    selected: String,
+    updateSelect: (String) -> Unit
+){
 
     var isExpanded by remember {
         mutableStateOf(false)
@@ -38,7 +37,7 @@ fun DropDownMenu(){
         ) {
             MyTextField(
                 modifier = Modifier.menuAnchor(),
-                value = selectedText,
+                value = selected,
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = {
@@ -54,7 +53,7 @@ fun DropDownMenu(){
                     DropdownMenuItem(
                         text = { Text(text = text) },
                         onClick = {
-                            selectedText = list[index]
+                            updateSelect(list[index])
                             isExpanded = false
                         }
                     )

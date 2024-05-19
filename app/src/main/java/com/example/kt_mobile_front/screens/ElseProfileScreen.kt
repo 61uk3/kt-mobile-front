@@ -51,7 +51,7 @@ fun ElseProfileScreen(
         coroutineScope.launch {
             try {
                 setUser(getUser(userId))
-            } catch (t: Exception) {
+            } catch (_: Exception) {
 
             }
         }

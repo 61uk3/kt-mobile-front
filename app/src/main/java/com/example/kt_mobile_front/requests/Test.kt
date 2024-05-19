@@ -6,6 +6,7 @@ import com.example.kt_mobile_front.data.ChatData
 import com.example.kt_mobile_front.data.CreateLotData
 import com.example.kt_mobile_front.data.LotData
 import com.example.kt_mobile_front.data.PasswordData
+import com.example.kt_mobile_front.data.PutUserData
 import com.example.kt_mobile_front.data.ShortChatData
 import com.example.kt_mobile_front.data.ShortLotData
 import com.example.kt_mobile_front.data.SignInData
@@ -67,7 +68,7 @@ suspend fun postSignUp(
     town: String,
     uris: List<Uri>,
     context: Context
-) {
+): String {
     val response = client.submitFormWithBinaryData(
         url = Route.SIGNUP_URL,
         formData = formData {
@@ -76,6 +77,7 @@ suspend fun postSignUp(
         }
     ).body<String>()
     postPhotoSignUp(uris, response, context)
+    return response
 }
 
 
@@ -102,16 +104,16 @@ suspend fun postPhotoSignUp(
                 )
             }
         }
-    ){  }.body()
+    ) { }.body()
 }
 
 
 suspend fun getAllItems(): List<ShortLotData> {
-    return client.get(Route.ITEM_URL).call.body()
+    return client.get(Route.ITEM_URL).body()
 }
 
 suspend fun getItemById(id: String): LotData {
-    return client.get(Route.ITEM_URL + id).call.body()
+    return client.get(Route.ITEM_URL + id).body()
 }
 
 suspend fun delItem(id: String) {
@@ -209,14 +211,13 @@ suspend fun putPassword(
     old_pass: String,
     new_pass: String
 ) {
-    client.put {
-        url(Route.PASSWORD_URL)
-        contentType(Json)
-        setBody(
-            formData {
-
-            }
-        )
+    client.submitFormWithBinaryData(
+        Route.PASSWORD_URL,
+        formData {
+            append("old_pass", old_pass)
+            append("new_pass", new_pass)
+        }
+    ) {
         headers {
             append(HttpHeaders.Authorization, token)
         }
@@ -243,15 +244,101 @@ suspend fun postMessage(
     id: String,
     msg: String
 ) {
-  val url = Route.CHAT_URL + "/" + id
-  client.submitFormWithBinaryData(
-      url,
-      formData {
-          append("message", msg)
-      }
-  ) {
-      headers {
-          append(HttpHeaders.Authorization, token)
-      }
-  }
+    val url = Route.CHAT_URL + "/" + id
+    client.submitFormWithBinaryData(
+        url,
+        formData {
+            append("message", msg)
+        }
+    ) {
+        headers {
+            append(HttpHeaders.Authorization, token)
+        }
+    }
+}
+
+suspend fun putLot(
+    id: String,
+    createLotData: CreateLotData,
+    cat: String,
+    cond: String,
+    uris: List<Uri>,
+    context: Context
+) {
+    client.submitFormWithBinaryData(
+        url = Route.ITEM_URL + "up/" + id,
+        formData {
+            append("lot_json", kotlinx.serialization.json.Json.encodeToString(createLotData))
+            append("cat", cat)
+            append("cond", cond)
+            uris.forEach { uri ->
+                append(
+                    "photos",
+                    context.contentResolver.openInputStream(uri)!!.use { it.readBytes() },
+                    Headers.build {
+                        append(HttpHeaders.ContentType, "image/jpeg")
+                        append(
+                            HttpHeaders.ContentDisposition,
+                            "filename=\"${UUID.randomUUID()}.jpeg\""
+                        )
+                    }
+                )
+            }
+        }
+    ) {
+        headers {
+            append(HttpHeaders.Authorization, token)
+        }
+    }
+}
+
+suspend fun putUser(
+    putUserData: PutUserData,
+    town: String,
+    uris: List<Uri>,
+    context: Context
+) {
+    val url = Route.USER_URL + "up/"
+    val response = client.submitFormWithBinaryData(
+        url = url,
+        formData = formData {
+            append("user_json", kotlinx.serialization.json.Json.encodeToString(putUserData))
+            append("town", town)
+        }
+    ){
+        headers {
+            append(HttpHeaders.Authorization, token)
+        }
+    }.body<String>()
+    putPhotoUser(uris, response, context)
+}
+
+suspend fun putPhotoUser(
+    uris: List<Uri>,
+    id: String,
+    context: Context,
+) {
+    val url = Route.USER_URL + id.drop(1).dropLast(1) + "/photos"
+    return client.submitFormWithBinaryData(
+        url = url,
+        formData = formData {
+            uris.forEach { uri ->
+                append(
+                    "photos",
+                    context.contentResolver.openInputStream(uri)!!.use { it.readBytes() },
+                    Headers.build {
+                        append(HttpHeaders.ContentType, "image/jpeg")
+                        append(
+                            HttpHeaders.ContentDisposition,
+                            "filename=\"${UUID.randomUUID()}.jpeg\""
+                        )
+                    }
+                )
+            }
+        }
+    ) {
+        headers {
+            append(HttpHeaders.Authorization, token)
+        }
+    }.body()
 }

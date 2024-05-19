@@ -1,6 +1,7 @@
 package com.example.kt_mobile_front.components
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -22,7 +23,12 @@ fun MyTextField(
     trailingIcon: @Composable (() -> Unit)? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
+    isError: Boolean = false,
+    supportingText: @Composable (() -> Unit)? = null,
+    singleLine: Boolean = false,
+    placeholder: @Composable (() -> Unit)? = null,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ){
     OutlinedTextField(
         modifier = modifier,
@@ -40,6 +46,11 @@ fun MyTextField(
         trailingIcon = trailingIcon,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         visualTransformation = visualTransformation,
-        readOnly = readOnly
+        readOnly = readOnly,
+        isError = isError,
+        singleLine = singleLine,
+        supportingText = supportingText,
+        keyboardActions = keyboardActions,
+        placeholder = placeholder
     )
 }

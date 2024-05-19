@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,16 +30,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.example.kt_mobile_front.R
 import com.example.kt_mobile_front.components.CardChosePhoto
 import com.example.kt_mobile_front.components.DropDownMenu
 import com.example.kt_mobile_front.components.ImageBox
 import com.example.kt_mobile_front.components.MyTextField
+import com.example.kt_mobile_front.data.PutUserData
 import com.example.kt_mobile_front.data.UserData
 import com.example.kt_mobile_front.requests.getUser
+import com.example.kt_mobile_front.requests.putUser
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,38 +51,55 @@ import kotlinx.coroutines.launch
 @Composable
 fun EditProfileScreen(
     onBackClickListener: () -> Unit
-){
-    val (User, setUser) = remember {
-        mutableStateOf<UserData?>(null)
+) {
+    val context = LocalContext.current
+    val listTown = listOf("Череповец", "Шексна", "Вологда")
+    var town by remember {
+        mutableStateOf("")
     }
-    val coroutineScope = rememberCoroutineScope()
-    SideEffect {
-        coroutineScope.launch {
-            try {
-                setUser(getUser())
-            } catch (t: Exception) {
-
-            }
-        }
+    var name by remember {
+        mutableStateOf("")
+    }
+    var phone by remember {
+        mutableStateOf("")
     }
     var selectedImageUris by remember {
         mutableStateOf<Uri?>(null)
     }
+    var selectedImagesUris by remember {
+        mutableStateOf<List<Uri>>(emptyList())
+    }
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        try {
+            val user = getUser()
+            name = user.name
+            phone = user.contact
+            town = user.town.town
+            selectedImageUris = user.photo.toUri()
+        } catch (_: Exception) {
+
+        }
+    }
+
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {
             selectedImageUris = it
+            selectedImagesUris = emptyList()
+            selectedImagesUris = selectedImagesUris.plus(it!!)
         }
     )
-    val (name, setName) = remember { mutableStateOf("") }
-    val (phone, setPhone) = remember { mutableStateOf("") }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(text = "Редактирование профиля") },
                 navigationIcon = {
                     IconButton(onClick = { onBackClickListener() }) {
-                        Icon(painter = painterResource(id = R.drawable.ic_arrow_back), contentDescription = null)
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = null
+                        )
                     }
                 }
             )
@@ -102,8 +123,7 @@ fun EditProfileScreen(
                         )
                     }
                 )
-            }
-            else {
+            } else {
                 CardChosePhoto(modifier = Modifier
                     .size(220.dp)
                     .padding(4.dp),
@@ -118,20 +138,36 @@ fun EditProfileScreen(
             MyTextField(
                 label = "Имя",
                 value = name,
-                onValueChange = setName
+                onValueChange = { name = it }
 
             )
             Spacer(modifier = Modifier.height(16.dp))
-            DropDownMenu()
+            DropDownMenu(
+                listTown,
+                town
+            ) {
+                town = it
+            }
             Spacer(modifier = Modifier.height(16.dp))
-            MyTextField(
-                label = "Телефон",
-                value = phone,
-                onValueChange = setPhone,
-                keyboardType = KeyboardType.Phone
+            PhoneField(phone,
+                mask = "+7-000-000-00-00",
+                maskNumber = '0',
+                onPhoneChanged = { phone = it }
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Button(onClick = {  }) {
+            Button(onClick = {
+                coroutineScope.launch {
+                    putUser(
+                        PutUserData(
+                            name,
+                            phone
+                        ),
+                        town,
+                        selectedImagesUris,
+                        context
+                    )
+                }
+            }) {
                 Text(text = "Сохранить")
             }
         }

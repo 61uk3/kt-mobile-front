@@ -15,6 +15,7 @@ fun NavGraphBuilder.authNavGraph(rootNavController: NavHostController){
         composable(route = AuthRouteScreen.SignIn.route){
             SigninScreen(
                 signinClickListener = {
+                    rootNavController.popBackStack()
                     rootNavController.navigate(route = Graph.MainScreenGraph)
                 },
                 signupClickListener = {
@@ -25,6 +26,7 @@ fun NavGraphBuilder.authNavGraph(rootNavController: NavHostController){
         composable(route = AuthRouteScreen.SignUp.route){
             SignupScreen(
                 loginClickListener = {
+                    rootNavController.popBackStack()
                     rootNavController.navigateUp()
                 }
             )
