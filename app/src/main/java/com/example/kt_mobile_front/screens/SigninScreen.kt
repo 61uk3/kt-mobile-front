@@ -21,10 +21,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -43,16 +45,25 @@ import kotlinx.coroutines.launch
 fun SigninScreen(
     signinClickListener: () -> Unit,
     signupClickListener: () -> Unit
-){
+) {
     val coroutineScope = rememberCoroutineScope()
-    val (login, setLogin) = remember {
+    var login by remember {
         mutableStateOf("")
     }
-    val (password, setPassword) = remember {
+    var password by remember {
         mutableStateOf("")
     }
     var passwordHidden by remember {
         mutableStateOf(true)
+    }
+    var isError by remember {
+        mutableStateOf(false)
+    }
+    var isLoginError by remember {
+        mutableStateOf(false)
+    }
+    var isPasswordError by remember {
+        mutableStateOf(false)
     }
     Column(
         modifier = Modifier
@@ -69,31 +80,50 @@ fun SigninScreen(
         Text(text = "Добро пожаловать", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(4.dp))
         Text(text = "Войдите в аккаунт")
-        Spacer(modifier = Modifier.height(64.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+        if (isError) {
+            Text(text = "Неверный логин или пароль!", color = Color.Red)
+        }
+        Spacer(modifier = Modifier.height(24.dp))
         MyTextField(
+            singleLine = true,
             label = "Введите логин",
             value = login,
-            onValueChange = setLogin,
+            onValueChange = {
+                login = it
+                isError = false
+                isLoginError = false
+            },
             leadingIcon = R.drawable.ic_person
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        if (isLoginError) {
+            Text(text = "Заполните поле", color = Color.Red)
+        }
+        if (!isLoginError) {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         MyTextField(
+            singleLine = true,
             label = "Введите пароль",
             value = password,
-            onValueChange = setPassword,
+            onValueChange = {
+                password = it
+                isError = false
+                isPasswordError = false
+            },
             keyboardType = KeyboardType.Password,
             leadingIcon = R.drawable.ic_lock,
             visualTransformation = if (passwordHidden) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = {
                 IconButton(onClick = { passwordHidden = !passwordHidden }) {
-                    if(passwordHidden) {
+                    if (passwordHidden) {
                         Icon(
                             modifier = Modifier.size(20.dp),
                             painter = painterResource(id = R.drawable.ic_eye),
                             contentDescription = null
                         )
-                    }
-                    else
+                    } else
                         Icon(
                             modifier = Modifier.size(20.dp),
                             painter = painterResource(id = R.drawable.ic_eye_crossed),
@@ -102,28 +132,43 @@ fun SigninScreen(
                 }
             }
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        if (isPasswordError) {
+            Text(text = "Заполните поле", color = Color.Red)
+        }
+        if (!isPasswordError) {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         Button(onClick = {
             coroutineScope.launch {
-                try {
-                    postSignIn(signInData = SignInData(login, password))
-                    signinClickListener()
-                } catch (e: Exception) {
-
+                if (login != "" && password != "") {
+                    try {
+                        postSignIn(signInData = SignInData(login, password))
+                        signinClickListener()
+                    } catch (e: Exception) {
+                        isError = true
+                    }
+                } else {
+                    if (login == "") {
+                        isLoginError = true
+                    }
+                    if (password == "") {
+                        isPasswordError = true
+                    }
                 }
-            }
 
+            }
         }) {
             Text(text = "Войти")
         }
         Spacer(modifier = Modifier.height(64.dp))
         val signupText = "Зарегистрироваться"
         val annotatedString = buildAnnotatedString {
-            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onBackground)){
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
                 append("Нет аккаунта?")
             }
             append(" ")
-            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)){
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
                 pushStringAnnotation(tag = signupText, signupText)
                 append(signupText)
             }
@@ -134,9 +179,9 @@ fun SigninScreen(
             style = TextStyle(
                 fontSize = 16.sp
             )
-        ) {offset ->
+        ) { offset ->
             annotatedString.getStringAnnotations(offset, offset).forEach {
-                if (it.tag == signupText){
+                if (it.tag == signupText) {
                     signupClickListener()
                 }
             }

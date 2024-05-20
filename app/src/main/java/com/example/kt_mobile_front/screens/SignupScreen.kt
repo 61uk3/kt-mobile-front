@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,10 +25,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import com.example.kt_mobile_front.R
 import com.example.kt_mobile_front.components.CardChosePhoto
 import com.example.kt_mobile_front.components.DropDownMenu
@@ -56,8 +58,31 @@ import kotlinx.coroutines.launch
 @Composable
 fun SignupScreen(
     loginClickListener: () -> Unit
-){
-    val phoneLength = 12
+) {
+    var isLoginError by remember {
+        mutableStateOf(false)
+    }
+    var isNameError by remember {
+        mutableStateOf(false)
+    }
+    var isImageError by remember {
+        mutableStateOf(false)
+    }
+    var isPhoneError by remember {
+        mutableStateOf(false)
+    }
+    var isPasswordError by remember {
+        mutableStateOf(false)
+    }
+    var isPasswordEqualsError by remember {
+        mutableStateOf(false)
+    }
+    var isTownError by remember {
+        mutableStateOf(false)
+    }
+    var response by remember {
+        mutableStateOf("")
+    }
     val listTown = listOf("Череповец", "Шексна", "Вологда")
     var town by remember {
         mutableStateOf("Город")
@@ -67,43 +92,59 @@ fun SignupScreen(
     var selectedImageUris by remember {
         mutableStateOf<List<Uri>>(emptyList())
     }
+    var selectedImageUris1 by remember {
+        mutableStateOf<Uri?>(null)
+    }
     val multiplePhotosPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia(
-            maxItems = 2
-        ),
+        contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {
-            selectedImageUris = it
+            selectedImageUris1 = it
+            selectedImageUris = emptyList()
+            selectedImageUris = selectedImageUris.plus(it!!)
+            isImageError = false
         }
     )
     var phone by remember {
         mutableStateOf("")
     }
-    val (password, setPassword) = remember { mutableStateOf("") }
-    val (confirmPassword, setConfirmPassword) = remember { mutableStateOf("") }
-    val (name, setName) = remember { mutableStateOf("") }
-    val (login, setLogin) = remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    var login by rememberSaveable { mutableStateOf("") }
     var passwordHidden by remember { mutableStateOf(true) }
     var confirmPasswordHidden by remember { mutableStateOf(true) }
+    val imageErrorColor = if (isImageError) Color.Red else MaterialTheme.colorScheme.background
+    val nameErrorColor = if (isNameError) Color.Red else MaterialTheme.colorScheme.background
+    val townErrorColor = if (isTownError) Color.Red else MaterialTheme.colorScheme.background
+    val phoneErrorColor = if (isPhoneError || response.drop(1)
+            .dropLast(1) == "contact"
+    ) Color.Red else MaterialTheme.colorScheme.background
+    val loginErrorColor = if (isLoginError || response.drop(1)
+            .dropLast(1) == "login"
+    ) Color.Red else MaterialTheme.colorScheme.background
+    val passwordErrorColor =
+        if (isPasswordError) Color.Red else MaterialTheme.colorScheme.background
+    val passEqualsErrorColor =
+        if (isPasswordEqualsError) Color.Red else MaterialTheme.colorScheme.background
     Column(
         modifier = Modifier
             .fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (!selectedImageUris.isEmpty()) {
+        if (selectedImageUris1 != null) {
             ImageBox(
                 modifier = Modifier
                     .size(220.dp)
                     .clip(RoundedCornerShape(12.dp)),
-                selectedImageUris = selectedImageUris.get(0),
+                selectedImageUris = selectedImageUris1,
                 onClickListener = {
                     multiplePhotosPickerLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 }
             )
-        }
-        else {
+        } else {
             CardChosePhoto(modifier = Modifier
                 .size(220.dp)
                 .padding(4.dp),
@@ -114,50 +155,87 @@ fun SignupScreen(
                 }
             )
         }
-        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(text = "Выберите фотографию", color = imageErrorColor)
+
+        Spacer(modifier = Modifier.height(2.dp))
         MyTextField(
             label = "Имя",
             value = name,
-            onValueChange = setName,
+            onValueChange = {
+                name = it
+                if (name.length < 2) {
+                    isNameError = true
+                } else {
+                    isNameError = false
+                }
+            },
             singleLine = true
         )
-        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(text = "Введите имя от 2 символов", color = nameErrorColor)
+
+        Spacer(modifier = Modifier.height(2.dp))
         DropDownMenu(
             listTown,
             town
         ) {
             town = it
+            isTownError = false
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "Выберите город", color = townErrorColor)
+        Spacer(modifier = Modifier.height(2.dp))
         PhoneField(phone,
-            mask = "+7-000-000-00-00",
+            mask = "+70000000000",
             maskNumber = '0',
-            onPhoneChanged = { phone = it })
-        Spacer(modifier = Modifier.height(16.dp))
+            onPhoneChanged = {
+                phone = it
+                isPhoneError = false
+                response = ""
+            }
+        )
+        val phoneErrorText =
+            if (response.drop(1).dropLast(1) != "contact") "Введите номер" else "Номер существует"
+        Text(text = phoneErrorText, color = phoneErrorColor)
+        Spacer(modifier = Modifier.height(2.dp))
 
         MyTextField(
             label = "Логин",
             value = login,
-            onValueChange = setLogin,
+            onValueChange = {
+                login = it
+                isLoginError = false
+                response = ""
+            },
             singleLine = true
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        val loginErrorText = if (response.drop(1)
+                .dropLast(1) == "login"
+        ) "Логин существует" else "Введите логин от 6 символов"
+        Text(text = loginErrorText, color = loginErrorColor)
+        Spacer(modifier = Modifier.height(2.dp))
         MyTextField(
             label = "Пароль",
             value = password,
-            onValueChange = setPassword,
+            onValueChange = {
+                password = it
+                if (password.length < 6) {
+                    isPasswordError = true
+                } else {
+                    isPasswordError = false
+                }
+            },
             keyboardType = KeyboardType.Password,
             visualTransformation = if (passwordHidden) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = {
                 IconButton(onClick = { passwordHidden = !passwordHidden }) {
-                    if(passwordHidden) {
+                    if (passwordHidden) {
                         Icon(
                             modifier = Modifier.size(20.dp),
                             painter = painterResource(id = R.drawable.ic_eye),
                             contentDescription = null
                         )
-                    }
-                    else
+                    } else
                         Icon(
                             modifier = Modifier.size(20.dp),
                             painter = painterResource(id = R.drawable.ic_eye_crossed),
@@ -167,25 +245,27 @@ fun SignupScreen(
             },
             singleLine = true
         )
+        Text(text = "Введите пароль от 6 символов", color = passwordErrorColor)
 
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         MyTextField(
             label = "Подтвердите пароль",
             value = confirmPassword,
-            onValueChange = setConfirmPassword,
+            onValueChange = {
+                confirmPassword = it
+                isPasswordEqualsError = false
+            },
             keyboardType = KeyboardType.Password,
             visualTransformation = if (confirmPasswordHidden) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = {
                 IconButton(onClick = { confirmPasswordHidden = !confirmPasswordHidden }) {
-                    if(confirmPasswordHidden) {
+                    if (confirmPasswordHidden) {
                         Icon(
                             modifier = Modifier.size(20.dp),
                             painter = painterResource(id = R.drawable.ic_eye),
                             contentDescription = null
                         )
-                    }
-                    else
+                    } else
                         Icon(
                             modifier = Modifier.size(20.dp),
                             painter = painterResource(id = R.drawable.ic_eye_crossed),
@@ -195,37 +275,74 @@ fun SignupScreen(
             },
             singleLine = true
         )
+        Text(text = "Пароли не совпадают", color = passEqualsErrorColor)
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = {
-            try {
-                coroutineScope.launch {
-                    postSignUp(
-                        signUpUserData = SignUpUserData(
-                            login, password, name, phone
-                        ),
-                        "Череповец",
-                        uris = selectedImageUris,
-                        context = context
-                    )
-                }
-            } catch (_: Exception){
+            if (login.length >= 6 && name.length >= 2 && password.length >= 6 && password == confirmPassword && phone.length == 10 && !selectedImageUris.isEmpty() && town != "Город") {
+                try {
+                    coroutineScope.launch {
+                        response = postSignUp(
+                            signUpUserData = SignUpUserData(
+                                login, password, name, phone
+                            ),
+                            "Череповец",
+                            uris = selectedImageUris,
+                            context = context
+                        )
+                        if (response.dropLast(1).drop(1) == "login") {
+                            isLoginError = true
+                        }
+                        if (response.drop(1).dropLast(1) == "contact") {
+                            isPhoneError = true
+                        }
+                        if (response.drop(1).dropLast(1) != "login" && response.drop(1)
+                                .dropLast(1) != "contact"
+                        ) {
+                            loginClickListener()
+                        }
 
+                    }
+                } catch (_: Exception) {
+                }
+
+            } else {
+                if (login.length < 6) {
+                    isLoginError = true
+                }
+                if (name.length < 2) {
+                    isNameError = true
+                }
+                if (password.length < 6) {
+                    isPasswordError = true
+                }
+                if (password != confirmPassword) {
+                    isPasswordEqualsError = true
+                }
+                if (phone.length < 10) {
+                    isPhoneError = true
+                }
+                if (selectedImageUris.isEmpty()) {
+                    isImageError = true
+                }
+                if (town == "Город") {
+                    isTownError = true
+                }
             }
-            loginClickListener()
+
 
         }) {
             Text(text = "Зарегистрироваться")
         }
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         val loginText = "Войти"
         val annotatedString = buildAnnotatedString {
-            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onBackground)){
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
                 append("Есть аккаунт?")
             }
             append(" ")
-            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)){
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
                 pushStringAnnotation(tag = loginText, loginText)
                 append(loginText)
             }
@@ -236,9 +353,9 @@ fun SignupScreen(
             style = TextStyle(
                 fontSize = 16.sp
             )
-        ) {offset ->
+        ) { offset ->
             annotatedString.getStringAnnotations(offset, offset).forEach {
-                if (it.tag == loginText){
+                if (it.tag == loginText) {
                     loginClickListener()
                 }
             }
@@ -264,7 +381,7 @@ fun PhoneField(
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
         visualTransformation = PhoneVisualTransformation(mask, maskNumber),
-        leadingIcon = {  }
+        leadingIcon = { }
     )
 }
 
