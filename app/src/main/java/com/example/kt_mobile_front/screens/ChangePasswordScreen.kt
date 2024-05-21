@@ -13,6 +13,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -38,27 +40,38 @@ import kotlinx.coroutines.launch
 @Composable
 fun ChangePasswordScreen(
     onBackClickListener: () -> Unit
-){
+) {
+    var isPasswordEqualsError by remember {
+        mutableStateOf(false)
+    }
+    var isPasswordError by remember {
+        mutableStateOf(false)
+    }
     val coroutineScope = rememberCoroutineScope()
-    val (currentPassword, setCurrentPassword) = remember {
+    var currentPassword by remember {
         mutableStateOf("")
     }
-    val (newPassword, setNewPassword) = remember {
+    var newPassword by remember {
         mutableStateOf("")
     }
-    val (confirmPassword, setConfirmPassword) = remember {
+    var confirmPassword by remember {
         mutableStateOf("")
     }
     var currentPasswordHidden by remember { mutableStateOf(true) }
     var newPasswordHidden by remember { mutableStateOf(true) }
     var confirmPasswordHidden by remember { mutableStateOf(true) }
+    val passEqualsErrorColor =
+        if (isPasswordEqualsError) Color.Red else MaterialTheme.colorScheme.background
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(text = "Сменить пароль") },
                 navigationIcon = {
                     IconButton(onClick = { onBackClickListener() }) {
-                        Icon(painter = painterResource(id = R.drawable.ic_arrow_back), contentDescription = null)
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = null
+                        )
                     }
                 }
             )
@@ -74,20 +87,21 @@ fun ChangePasswordScreen(
                 modifier = Modifier.fillMaxWidth(),
                 label = "Текущий",
                 value = currentPassword,
-                onValueChange = setCurrentPassword,
+                onValueChange = {
+                    currentPassword = it
+                },
                 keyboardType = KeyboardType.Password,
                 visualTransformation = if (currentPasswordHidden) PasswordVisualTransformation() else VisualTransformation.None,
                 leadingIcon = R.drawable.ic_lock,
                 trailingIcon = {
                     IconButton(onClick = { currentPasswordHidden = !currentPasswordHidden }) {
-                        if(currentPasswordHidden) {
+                        if (currentPasswordHidden) {
                             Icon(
                                 modifier = Modifier.size(20.dp),
                                 painter = painterResource(id = R.drawable.ic_eye),
                                 contentDescription = null
                             )
-                        }
-                        else
+                        } else
                             Icon(
                                 modifier = Modifier.size(20.dp),
                                 painter = painterResource(id = R.drawable.ic_eye_crossed),
@@ -101,20 +115,23 @@ fun ChangePasswordScreen(
                 modifier = Modifier.fillMaxWidth(),
                 label = "Новый",
                 value = newPassword,
-                onValueChange = setNewPassword,
+                onValueChange = {
+                    newPassword = it
+                    isPasswordEqualsError = false
+                    isPasswordError = false
+                },
                 keyboardType = KeyboardType.Password,
                 visualTransformation = if (newPasswordHidden) PasswordVisualTransformation() else VisualTransformation.None,
                 leadingIcon = R.drawable.ic_lock,
                 trailingIcon = {
                     IconButton(onClick = { newPasswordHidden = !newPasswordHidden }) {
-                        if(newPasswordHidden) {
+                        if (newPasswordHidden) {
                             Icon(
                                 modifier = Modifier.size(20.dp),
                                 painter = painterResource(id = R.drawable.ic_eye),
                                 contentDescription = null
                             )
-                        }
-                        else
+                        } else
                             Icon(
                                 modifier = Modifier.size(20.dp),
                                 painter = painterResource(id = R.drawable.ic_eye_crossed),
@@ -123,25 +140,30 @@ fun ChangePasswordScreen(
                     }
                 }
             )
+            if (isPasswordError) {
+                Text(text = "Введите пароль от 6 символов", color = Color.Red)
+            }
             Spacer(modifier = Modifier.height(4.dp))
             MyTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = "Подтверждение",
                 value = confirmPassword,
-                onValueChange = setConfirmPassword,
+                onValueChange = {
+                    confirmPassword = it
+                    isPasswordEqualsError = false
+                },
                 keyboardType = KeyboardType.Password,
                 visualTransformation = if (confirmPasswordHidden) PasswordVisualTransformation() else VisualTransformation.None,
                 leadingIcon = R.drawable.ic_lock,
                 trailingIcon = {
                     IconButton(onClick = { confirmPasswordHidden = !confirmPasswordHidden }) {
-                        if(confirmPasswordHidden) {
+                        if (confirmPasswordHidden) {
                             Icon(
                                 modifier = Modifier.size(20.dp),
                                 painter = painterResource(id = R.drawable.ic_eye),
                                 contentDescription = null
                             )
-                        }
-                        else
+                        } else
                             Icon(
                                 modifier = Modifier.size(20.dp),
                                 painter = painterResource(id = R.drawable.ic_eye_crossed),
@@ -150,11 +172,23 @@ fun ChangePasswordScreen(
                     }
                 }
             )
+            Text(text = "Пароли не совпадают", color = passEqualsErrorColor)
             Spacer(modifier = Modifier.height(6.dp))
             Button(onClick = {
-                coroutineScope.launch {
-                    putPassword(currentPassword, newPassword)
+                if (newPassword == confirmPassword && newPassword.length >= 6) {
+                    coroutineScope.launch {
+                        putPassword(currentPassword, newPassword)
+                    }
+                    onBackClickListener()
+                } else {
+                    if (newPassword != confirmPassword) {
+                        isPasswordEqualsError = true
+                    }
+                    if (newPassword.length < 6) {
+                        isPasswordError = true
+                    }
                 }
+
 
             }) {
                 Text(text = "Изменить пароль")

@@ -44,7 +44,11 @@ fun MainNavGraph(
             )
         }
         composable(route = MainRouteScreen.Add.route){
-            AddLotScreen()
+            AddLotScreen(
+                onButtonClickListrner = {
+                    rootNavController.navigate(route = Graph.MainScreenGraph)
+                }
+            )
         }
         composable(route = MainRouteScreen.Profile.route){
             ProfileScreen(

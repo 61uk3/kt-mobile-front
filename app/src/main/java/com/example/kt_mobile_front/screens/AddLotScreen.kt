@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -64,7 +65,30 @@ import com.example.kt_mobile_front.requests.postPhotosLot
 import kotlinx.coroutines.launch
 
 @Composable
-fun AddLotScreen() {
+fun AddLotScreen(
+    onButtonClickListrner: () -> Unit
+) {
+    var isImagesError by remember {
+        mutableStateOf(false)
+    }
+    var isTitleError by remember {
+        mutableStateOf(false)
+    }
+    var isDescError by remember {
+        mutableStateOf(false)
+    }
+    var isCondError by remember {
+        mutableStateOf(false)
+    }
+    var isCatError by remember {
+        mutableStateOf(false)
+    }
+    var isStreetError by remember {
+        mutableStateOf(false)
+    }
+    var isHomeError by remember {
+        mutableStateOf(false)
+    }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val listState = listOf("Новое", "Как новое", "Бу")
@@ -76,10 +100,10 @@ fun AddLotScreen() {
     var selectedCategory by remember {
         mutableStateOf("Категория")
     }
-    val (title, setTitle) = remember { mutableStateOf("") }
-    val (desc, setDesc) = remember { mutableStateOf("") }
-    val (street, setStreet) = remember { mutableStateOf("") }
-    val (home, setHome) = remember { mutableStateOf("") }
+    var title by remember { mutableStateOf("") }
+    var desc by remember { mutableStateOf("") }
+    var street by remember { mutableStateOf("") }
+    var home by remember { mutableStateOf("") }
 
     var selectedImageUris by remember {
         mutableStateOf<List<Uri>>(emptyList())
@@ -90,6 +114,7 @@ fun AddLotScreen() {
         ),
         onResult = {
             selectedImageUris = it
+            isImagesError = false
         }
     )
 
@@ -126,6 +151,15 @@ fun AddLotScreen() {
                 )
             }
         }
+        if (isImagesError) {
+            item(
+                span = { GridItemSpan(2) }
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    Text(text = "Выберите хотя бы одну фотографию", color = Color.Red)
+                }
+            }
+        }
         item(
             span = { GridItemSpan(2) }
         ) {
@@ -133,13 +167,24 @@ fun AddLotScreen() {
                 modifier = Modifier
                     .fillMaxWidth(),
                 value = title,
-                onValueChange = setTitle,
+                onValueChange = {
+                    title = it
+                    isTitleError = false
+                },
                 label = { Text(text = "Название") },
                 maxLines = 1
             )
 
         }
-
+        if (isTitleError) {
+            item(
+                span = { GridItemSpan(2) }
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    Text(text = "Укажите название", color = Color.Red)
+                }
+            }
+        }
         item(
             span = { GridItemSpan(2) }
         ) {
@@ -147,23 +192,48 @@ fun AddLotScreen() {
                 modifier = Modifier
                     .fillMaxWidth(),
                 value = desc,
-                onValueChange = setDesc,
+                onValueChange = {
+                    desc = it
+                    isDescError = false
+                },
                 label = { Text(text = "Описание") }
             )
 
+        }
+        if (isDescError) {
+            item(
+                span = { GridItemSpan(2) }
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    Text(text = "Укажите описание", color = Color.Red)
+                }
+            }
         }
         item(
             span = { GridItemSpan(2) }
         ) { Spacer(modifier = Modifier.height(2.dp)) }
         item {
-            DropDown(listState, selectedState) { newState ->
-                selectedState = newState
+            Column {
+                DropDown(listState, selectedState) { newState ->
+                    selectedState = newState
+                    isCondError = false
+                }
+                if (isCondError) {
+                    Text(text = "Выберите состояние", color = Color.Red)
+                }
             }
         }
         item {
-            DropDown(listCategory, selectedCategory) { newCategory ->
-                selectedCategory = newCategory
+            Column {
+                DropDown(listCategory, selectedCategory) { newCategory ->
+                    selectedCategory = newCategory
+                    isCatError = false
+                }
+                if (isCatError) {
+                    Text(text = "Выберите категорию", color = Color.Red)
+                }
             }
+
         }
         item(
             span = { GridItemSpan(2) }
@@ -171,20 +241,39 @@ fun AddLotScreen() {
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedTextField(
-                    modifier = Modifier,
-                    value = street,
-                    onValueChange = setStreet,
-                    label = { Text(text = "Улица") }
-                )
+                Column {
+                    OutlinedTextField(
+                        modifier = Modifier,
+                        value = street,
+                        onValueChange = {
+                            street = it
+                            isStreetError = false
+                        },
+                        label = { Text(text = "Улица") }
+                    )
+                    if (isStreetError) {
+                        Text(text = "Укажите улицу", color = Color.Red)
+                    }
+
+                }
+
                 Spacer(modifier = Modifier.width(8.dp))
-                OutlinedTextField(
-                    modifier = Modifier,
-                    value = home,
-                    onValueChange = setHome,
-                    label = { Text(text = "Дом") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
+                Column {
+                    OutlinedTextField(
+                        modifier = Modifier,
+                        value = home,
+                        onValueChange = {
+                            home = it
+                            isHomeError = false
+                        },
+                        label = { Text(text = "Дом") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                    if (isHomeError) {
+                        Text(text = "Укажите дом", color = Color.Red)
+                    }
+                }
+
             }
         }
         item(
@@ -195,19 +284,45 @@ fun AddLotScreen() {
             ) {
                 Button(
                     onClick = {
-                        coroutineScope.launch {
-                            postAddLot(
-                                createLotData = CreateLotData(
-                                    name = title,
-                                    description = desc,
-                                    address = "$street,$home"
-                                ),
-                                cat = selectedCategory,
-                                cond = selectedState,
-                                uris = selectedImageUris,
-                                context = context
-                            )
+                        if (!selectedImageUris.isEmpty() && title != "" && desc != "" && selectedCategory != "Категория" && selectedState != "Состояние" && street != "" && home != "") {
+                            coroutineScope.launch {
+                                postAddLot(
+                                    createLotData = CreateLotData(
+                                        name = title,
+                                        description = desc,
+                                        address = "$street,$home"
+                                    ),
+                                    cat = selectedCategory,
+                                    cond = selectedState,
+                                    uris = selectedImageUris,
+                                    context = context
+                                )
+                            }
+                            onButtonClickListrner()
+                        } else {
+                            if (selectedImageUris.isEmpty()) {
+                                isImagesError = true
+                            }
+                            if (title == "") {
+                                isTitleError = true
+                            }
+                            if (desc == "") {
+                                isDescError = true
+                            }
+                            if (selectedCategory == "Категория") {
+                                isCatError = true
+                            }
+                            if (selectedState == "Состояние") {
+                                isCondError = true
+                            }
+                            if (street == "") {
+                                isStreetError = true
+                            }
+                            if (home == "") {
+                                isHomeError = true
+                            }
                         }
+
                     }) {
                     Text(text = "Опубликовать")
                 }

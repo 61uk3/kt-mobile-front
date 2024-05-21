@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,6 +54,18 @@ import kotlinx.coroutines.launch
 fun EditProfileScreen(
     onBackClickListener: () -> Unit
 ) {
+    var isNameError by remember {
+        mutableStateOf(false)
+    }
+    var isImageError by remember {
+        mutableStateOf(false)
+    }
+    var isPhoneError by remember {
+        mutableStateOf(false)
+    }
+    var isTownError by remember {
+        mutableStateOf(false)
+    }
     val context = LocalContext.current
     val listTown = listOf("Череповец", "Шексна", "Вологда")
     var town by remember {
@@ -90,6 +104,8 @@ fun EditProfileScreen(
             selectedImagesUris = selectedImagesUris.plus(it!!)
         }
     )
+    val nameErrorColor = if (isNameError) Color.Red else MaterialTheme.colorScheme.background
+    val phoneErrorColor = if (isPhoneError) Color.Red else MaterialTheme.colorScheme.background
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -138,9 +154,14 @@ fun EditProfileScreen(
             MyTextField(
                 label = "Имя",
                 value = name,
-                onValueChange = { name = it }
-
+                onValueChange = {
+                    name = it
+                    isNameError = false
+                }
             )
+            if (isNameError) {
+                Text(text = "Введите имя от 2 символов", color = nameErrorColor)
+            }
             Spacer(modifier = Modifier.height(16.dp))
             DropDownMenu(
                 listTown,
@@ -150,23 +171,42 @@ fun EditProfileScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
             PhoneField(phone,
-                mask = "+7-000-000-00-00",
+                mask = "+70000000000",
                 maskNumber = '0',
-                onPhoneChanged = { phone = it }
+                onPhoneChanged = {
+                    phone = it
+                    isPhoneError = false
+                }
             )
+            if (isPhoneError ){
+                Text(text = "Введите номер", color = phoneErrorColor)
+            }
             Spacer(modifier = Modifier.height(12.dp))
             Button(onClick = {
-                coroutineScope.launch {
-                    putUser(
-                        PutUserData(
-                            name,
-                            phone
-                        ),
-                        town,
-                        selectedImagesUris,
-                        context
-                    )
+                if (phone.length == 10 && !selectedImagesUris.isEmpty() && name.length >= 2) {
+                    coroutineScope.launch {
+                        putUser(
+                            PutUserData(
+                                name,
+                                phone
+                            ),
+                            town,
+                            selectedImagesUris,
+                            context
+                        )
+                    }
+                } else {
+                    if (name.length < 2) {
+                        isNameError = true
+                    }
+                    if (phone.length < 10) {
+                        isPhoneError = true
+                    }
+                    if (selectedImagesUris.isEmpty()) {
+                        isImageError = true
+                    }
                 }
+
             }) {
                 Text(text = "Сохранить")
             }
